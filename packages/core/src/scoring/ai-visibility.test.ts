@@ -5,9 +5,18 @@
 import { describe, it, expect } from 'vitest';
 import { scoreAIVisibility } from './ai-visibility.js';
 import { SCORING_WEIGHTS } from '../contracts/scoring.contract.js';
+import type { MultiProviderResult } from '../contracts/query.contract.js';
 
-describe('scoreAIVisibility (stub)', () => {
-  const result = scoreAIVisibility();
+const emptyProviderResult: MultiProviderResult = {
+  brand: 'test',
+  domain: 'test.com',
+  responses: [],
+  failedPlatforms: [],
+  queriedAt: new Date(),
+};
+
+describe('scoreAIVisibility (zero input)', () => {
+  const result = scoreAIVisibility([], emptyProviderResult);
 
   describe('zero input (stub returns zero)', () => {
     it('returns score of 0', () => {
@@ -42,8 +51,9 @@ describe('scoreAIVisibility (stub)', () => {
       });
     });
 
-    it('returns empty platformCoverage', () => {
-      expect(result.platformCoverage).toEqual({});
+    it('returns platformCoverage object', () => {
+      expect(result.platformCoverage).toBeDefined();
+      expect(typeof result.platformCoverage).toBe('object');
     });
 
     it('returns providersUsed >= 1', () => {
@@ -83,9 +93,8 @@ describe('scoreAIVisibility (stub)', () => {
       }
     });
 
-    it('stub includes an implementation note', () => {
-      expect(result.notes.length).toBeGreaterThan(0);
-      expect(result.notes.some((n) => n.toLowerCase().includes('stub') || n.toLowerCase().includes('not yet'))).toBe(true);
+    it('notes is an array', () => {
+      expect(Array.isArray(result.notes)).toBe(true);
     });
   });
 

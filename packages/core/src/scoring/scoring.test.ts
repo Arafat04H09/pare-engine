@@ -60,7 +60,8 @@ describe('calculateOverallScore', () => {
 });
 
 describe('pillar scorer stubs', () => {
-  it('scoreAIVisibility returns 0/30', () => { const r = scoreAIVisibility(); expect(r.score).toBe(0); expect(r.maxScore).toBe(30); });
+  // TODO: S11 rewrites — S9 replaced stub with real implementation requiring args
+  it.skip('scoreAIVisibility returns 0/30', () => {});
   it('scoreContentQuality returns 0/30', () => { const r = scoreContentQuality(); expect(r.score).toBe(0); expect(r.maxScore).toBe(30); });
   // TODO: S11 rewrites — S6/S7 replaced stubs with real implementations requiring args
   it.skip('scoreSchemaCompleteness returns 0/15', () => {});

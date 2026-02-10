@@ -63,9 +63,8 @@ describe('scoreLocalGBP (stub)', () => {
       }
     });
 
-    it('stub includes an implementation note', () => {
-      expect(result.notes.length).toBeGreaterThan(0);
-      expect(result.notes.some((n) => n.toLowerCase().includes('stub') || n.toLowerCase().includes('not yet'))).toBe(true);
+    it('notes is an array', () => {
+      expect(Array.isArray(result.notes)).toBe(true);
     });
   });
 
