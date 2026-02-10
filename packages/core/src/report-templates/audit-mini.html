@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!--
+  Pare Engine — Mini Audit Report (1 Page)
+  Owner: S10 (Report Templates)
+  Data injected via template engine in generate-pdf.ts
+  Pillar max scores: 30, 30, 15, 10, 15 (canonical)
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Readiness Score — {{businessName}}</title>
+  <style>{{styles}}</style>
+</head>
+<body>
+  <div class="page">
+    <!-- Header -->
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>AI Readiness Assessment</div>
+        <div>{{auditDate}}</div>
+      </div>
+    </div>
+
+    <!-- Hero Score Section -->
+    <div class="mini-hero">
+      <h1 style="font-size: 18px; margin-bottom: 6px;">AI Readiness Score</h1>
+      <p class="text-muted" style="font-size: 11px; margin-bottom: 12px;">{{businessName}} &mdash; {{domain}}</p>
+      <div class="chart-container">
+        {{overallGauge}}
+      </div>
+    </div>
+
+    <!-- 5-Pillar Breakdown -->
+    <div class="mini-pillars">
+      <div class="mini-pillar-card">
+        {{aiVisibilityGauge}}
+      </div>
+      <div class="mini-pillar-card">
+        {{contentQualityGauge}}
+      </div>
+      <div class="mini-pillar-card">
+        {{schemaGauge}}
+      </div>
+      <div class="mini-pillar-card">
+        {{technicalGauge}}
+      </div>
+      <div class="mini-pillar-card">
+        {{localGbpGauge}}
+      </div>
+    </div>
+
+    <!-- Top 3 Findings -->
+    <div style="margin-bottom: 16px;">
+      <h3 style="font-size: 13px; margin-bottom: 8px;">Key Findings</h3>
+      {{findings}}
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-box">
+      <h3>{{ctaText}}</h3>
+      <p>Visit pareconsulting.com or reply to this email to schedule your strategy call.</p>
+    </div>
+
+    <!-- Footer -->
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared for {{businessName}}</span>
+      <span>Pare Consulting &bull; pareconsulting.com</span>
+    </div>
+  </div>
+</body>
+</html>

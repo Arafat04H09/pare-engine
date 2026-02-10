@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<!--
+  Pare Engine — Full Audit Report (9 Pages)
+  Owner: S10 (Report Templates)
+  Data injected via template engine in generate-pdf.ts
+  Pages: Cover, Executive Summary, AI Visibility, Content Quality,
+         Schema, Technical, GBP/Local, AI Accuracy, Action Plan
+  Pillar max scores: 30, 30, 15, 10, 15 (canonical)
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Readiness Audit — {{businessName}}</title>
+  <style>{{styles}}</style>
+</head>
+<body>
+
+  <!-- ============================================================ -->
+  <!-- PAGE 1: COVER -->
+  <!-- ============================================================ -->
+  <div class="page cover-page">
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+      <div class="cover-logo">pare</div>
+      <div class="cover-tagline">AI Visibility Consulting</div>
+
+      <div style="width: 80px; height: 3px; background: var(--color-accent); margin: 24px 0;"></div>
+
+      <div class="cover-title">AI Readiness Audit</div>
+      <div class="cover-business">{{businessName}}</div>
+      <div class="cover-domain">{{domain}}</div>
+
+      <div class="chart-container" style="margin: 20px 0;">
+        {{coverGauge}}
+      </div>
+
+      <div class="cover-date">Prepared on {{auditDate}}</div>
+      <div style="font-size: 10px; color: var(--color-text-muted); margin-top: 4px;">Report v{{reportVersion}}</div>
+    </div>
+
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared exclusively for {{businessName}}</span>
+      <span>Page 1 of 9</span>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PAGE 2: EXECUTIVE SUMMARY -->
+  <!-- ============================================================ -->
+  <div class="page">
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>{{businessName}}</div>
+        <div>{{auditDate}}</div>
+      </div>
+    </div>
+
+    <h2>Executive Summary</h2>
+
+    <div class="grid-2" style="margin-bottom: 16px;">
+      <div>
+        <p style="font-size: 11px; line-height: 1.7;">
+          This report evaluates <strong>{{businessName}}</strong>'s readiness
+          for AI-powered search and recommendation engines. We analyzed your
+          website, queried major AI platforms, and scored your business across
+          5 pillars of AI visibility.
+        </p>
+        <p style="font-size: 11px; line-height: 1.7;">
+          Your overall AI Readiness Score is
+          <strong style="font-family: var(--font-mono);">{{overallScore}} / 100</strong>
+          (Grade: <strong class="grade-text-{{letterGrade}}">{{letterGrade}}</strong>).
+          {{summaryVerdict}}
+        </p>
+      </div>
+      <div class="chart-container">
+        {{summaryGauge}}
+      </div>
+    </div>
+
+    <!-- Pillar Breakdown -->
+    <h3 style="margin-bottom: 8px;">Score Breakdown</h3>
+    <div style="margin-bottom: 16px;">
+      {{pillarBarChart}}
+    </div>
+
+    <!-- Platform Coverage -->
+    <h3 style="margin-bottom: 8px;">AI Platform Coverage</h3>
+    <div class="card" style="padding: 12px 16px;">
+      <div class="chart-container">
+        {{platformIndicators}}
+      </div>
+    </div>
+
+    <!-- Top Findings Summary -->
+    <h3 style="margin-top: 14px; margin-bottom: 8px;">Critical Findings</h3>
+    {{criticalFindings}}
+
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared for {{businessName}}</span>
+      <span>Page 2 of 9</span>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PAGE 3: AI VISIBILITY (30 pts) -->
+  <!-- ============================================================ -->
+  <div class="page">
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>{{businessName}}</div>
+        <div>{{auditDate}}</div>
+      </div>
+    </div>
+
+    <h2>AI Visibility <span class="font-mono" style="float: right; font-size: 14px;">{{aiVisibilityScore}} / 30</span></h2>
+
+    <p style="font-size: 11px; margin-bottom: 12px;">
+      This pillar measures how well your business appears when users ask AI
+      assistants for recommendations in your category and location. We queried
+      {{providersUsed}} AI platforms with {{queryCount}} prompts each.
+    </p>
+
+    <div class="grid-2" style="margin-bottom: 14px;">
+      <!-- Mention & Citation Rates -->
+      <div class="card">
+        <h4>Mention Rate</h4>
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span class="font-mono font-bold" style="font-size: 24px; color: var(--color-primary);">{{mentionRatePercent}}%</span>
+          <span class="text-muted text-small">of AI responses mention your business</span>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Citation Rate</h4>
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span class="font-mono font-bold" style="font-size: 24px; color: var(--color-primary);">{{citationRatePercent}}%</span>
+          <span class="text-muted text-small">include a link to your website</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sentiment Analysis -->
+    <div class="grid-2" style="margin-bottom: 14px;">
+      <div class="card">
+        <h4>Sentiment Analysis</h4>
+        <div class="chart-container" style="margin: 8px 0;">
+          {{sentimentDonut}}
+        </div>
+        <div style="display: flex; justify-content: center; gap: 12px; font-size: 9px;">
+          <span><span style="color: var(--color-success);">&#9679;</span> Positive ({{sentimentPositive}})</span>
+          <span><span style="color: var(--color-text-light);">&#9679;</span> Neutral ({{sentimentNeutral}})</span>
+          <span><span style="color: var(--color-danger);">&#9679;</span> Negative ({{sentimentNegative}})</span>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Average Position</h4>
+        <div style="text-align: center; padding: 12px 0;">
+          <span class="font-mono font-bold" style="font-size: 32px; color: var(--color-primary);">{{avgPositionDisplay}}</span>
+          <p class="text-muted text-small" style="margin-top: 4px;">in AI recommendation lists</p>
+        </div>
+        <p class="text-xs text-muted">Lower is better. Position 1 means your business is recommended first.</p>
+      </div>
+    </div>
+
+    <!-- Per-Platform Table -->
+    <h3 style="margin-bottom: 6px;">Per-Platform Results</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Platform</th>
+          <th>Mentioned</th>
+          <th>Position</th>
+          <th>Sentiment</th>
+          <th>URL Cited</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{platformRows}}
+      </tbody>
+    </table>
+
+    {{aiVisibilityFindings}}
+
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared for {{businessName}}</span>
+      <span>Page 3 of 9</span>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PAGE 4: CONTENT QUALITY (30 pts) -->
+  <!-- ============================================================ -->
+  <div class="page">
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>{{businessName}}</div>
+        <div>{{auditDate}}</div>
+      </div>
+    </div>
+
+    <h2>Content Quality <span class="font-mono" style="float: right; font-size: 14px;">{{contentScore}} / 30</span></h2>
+
+    <p style="font-size: 11px; margin-bottom: 12px;">
+      AI engines prefer content structured in answer-first format, with statistics,
+      FAQ sections, and clear author attribution. We evaluated your site's content
+      across these dimensions.
+    </p>
+
+    <div class="grid-2" style="margin-bottom: 14px;">
+      <div class="card">
+        <h4>Answer-First Score</h4>
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span class="font-mono font-bold" style="font-size: 24px; color: var(--color-primary);">{{answerFirstScore}}</span>
+          <span class="text-muted text-small">/ 10 avg. across pages</span>
+        </div>
+        <p class="text-xs text-muted mt-2">Measures whether pages lead with direct answers vs. preamble.</p>
+      </div>
+      <div class="card">
+        <h4>FAQ Coverage</h4>
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span class="font-mono font-bold" style="font-size: 24px; color: var(--color-primary);">{{faqCoverage}}</span>
+          <span class="text-muted text-small">pages with FAQ sections</span>
+        </div>
+        <p class="text-xs text-muted mt-2">FAQ pages are highly cited by AI engines for local queries.</p>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom: 14px;">
+      <div class="card">
+        <h4>Statistics Density</h4>
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span class="font-mono font-bold" style="font-size: 24px; color: var(--color-primary);">{{statsDensity}}</span>
+          <span class="text-muted text-small">stats per page (avg)</span>
+        </div>
+        <p class="text-xs text-muted mt-2">AI engines prioritize content with concrete numbers and statistics.</p>
+      </div>
+      <div class="card">
+        <h4>Author Attribution</h4>
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span class="font-mono font-bold" style="font-size: 24px; color: var(--color-primary);">{{authorRate}}%</span>
+          <span class="text-muted text-small">of pages have author info</span>
+        </div>
+        <p class="text-xs text-muted mt-2">Author attribution builds E-E-A-T signals for AI credibility.</p>
+      </div>
+    </div>
+
+    <!-- Content Weaknesses -->
+    <h3 style="margin-bottom: 6px;">Content Weaknesses</h3>
+    {{contentWeaknessList}}
+
+    {{contentFindings}}
+
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared for {{businessName}}</span>
+      <span>Page 4 of 9</span>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PAGE 5: SCHEMA / STRUCTURED DATA (15 pts) -->
+  <!-- ============================================================ -->
+  <div class="page">
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>{{businessName}}</div>
+        <div>{{auditDate}}</div>
+      </div>
+    </div>
+
+    <h2>Schema &amp; Structured Data <span class="font-mono" style="float: right; font-size: 14px;">{{schemaScore}} / 15</span></h2>
+
+    <p style="font-size: 11px; margin-bottom: 12px;">
+      JSON-LD schema markup helps AI engines understand your business, services,
+      and content. We inspected your site for required and recommended schema types.
+    </p>
+
+    <!-- Schema Types Overview -->
+    <div class="grid-2" style="margin-bottom: 14px;">
+      <div class="card">
+        <h4>Required Types</h4>
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span class="font-mono font-bold" style="font-size: 24px; color: var(--color-primary);">{{requiredPresent}}</span>
+          <span class="text-muted text-small">/ {{requiredTotal}} present</span>
+        </div>
+        <p class="text-xs text-muted mt-2">Organization, LocalBusiness, WebSite — essential for AI discovery.</p>
+      </div>
+      <div class="card">
+        <h4>Recommended Types</h4>
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span class="font-mono font-bold" style="font-size: 24px; color: var(--color-primary);">{{recommendedPresent}}</span>
+          <span class="text-muted text-small">additional types found</span>
+        </div>
+        <p class="text-xs text-muted mt-2">FAQPage, Service, BreadcrumbList, Product — enhance AI context.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 14px;">
+      <h4>Validation Errors</h4>
+      <div style="display: flex; align-items: baseline; gap: 6px;">
+        <span class="font-mono font-bold" style="font-size: 24px; color: {{validationErrorColor}};">{{validationErrors}}</span>
+        <span class="text-muted text-small">schema validation errors found</span>
+      </div>
+      <p class="text-xs text-muted mt-2">Invalid schema can cause AI engines to ignore your structured data entirely.</p>
+    </div>
+
+    <!-- Schema Gap Analysis -->
+    <h3 style="margin-bottom: 6px;">Missing Schema Types</h3>
+    {{schemaGapList}}
+
+    {{schemaFindings}}
+
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared for {{businessName}}</span>
+      <span>Page 5 of 9</span>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PAGE 6: TECHNICAL READINESS (10 pts) -->
+  <!-- ============================================================ -->
+  <div class="page">
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>{{businessName}}</div>
+        <div>{{auditDate}}</div>
+      </div>
+    </div>
+
+    <h2>Technical Readiness <span class="font-mono" style="float: right; font-size: 14px;">{{technicalScore}} / 10</span></h2>
+
+    <p style="font-size: 11px; margin-bottom: 12px;">
+      Technical readiness covers whether AI crawlers can access your site,
+      whether you provide machine-readable instructions via llms.txt,
+      and core web performance metrics.
+    </p>
+
+    <!-- Technical Checklist -->
+    <div class="grid-2" style="margin-bottom: 14px;">
+      <div class="card">
+        <h4 style="margin-bottom: 8px;">AI Crawler Access</h4>
+        {{technicalChecklist}}
+      </div>
+      <div class="card">
+        <h4 style="margin-bottom: 8px;">Performance</h4>
+        {{performanceChecklist}}
+      </div>
+    </div>
+
+    <!-- Technical Issues -->
+    <h3 style="margin-bottom: 6px;">Technical Issues</h3>
+    {{technicalIssueList}}
+
+    {{technicalFindings}}
+
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared for {{businessName}}</span>
+      <span>Page 6 of 9</span>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PAGE 7: GBP / LOCAL + 3RD PARTY (15 pts) -->
+  <!-- ============================================================ -->
+  <div class="page">
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>{{businessName}}</div>
+        <div>{{auditDate}}</div>
+      </div>
+    </div>
+
+    <h2>Local / GBP &amp; Third-Party <span class="font-mono" style="float: right; font-size: 14px;">{{gbpScore}} / 15</span></h2>
+
+    <p style="font-size: 11px; margin-bottom: 12px;">
+      Google Business Profile completeness, review quality, and NAP (Name, Address, Phone)
+      consistency across directories directly influence AI recommendations for local queries.
+    </p>
+
+    <div class="grid-2" style="margin-bottom: 14px;">
+      <div class="card">
+        <h4>GBP Profile</h4>
+        {{gbpChecklist}}
+      </div>
+      <div class="card">
+        <h4>Reviews</h4>
+        <div style="text-align: center; padding: 8px 0;">
+          <span class="font-mono font-bold" style="font-size: 28px; color: var(--color-primary);">{{reviewRating}}</span>
+          <span class="text-muted"> / 5.0</span>
+        </div>
+        <p class="text-center text-muted text-small">{{reviewCount}} reviews</p>
+        <p class="text-xs text-muted mt-2 text-center">AI engines heavily weight review volume and recency.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 14px;">
+      <h4>NAP Consistency</h4>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+        <span class="font-mono font-bold" style="font-size: 18px; color: {{napColor}};">{{napStatus}}</span>
+      </div>
+      <p class="text-xs text-muted">Inconsistent Name/Address/Phone across directories confuses AI engines and degrades local ranking.</p>
+    </div>
+
+    <!-- GBP Issues -->
+    <h3 style="margin-bottom: 6px;">GBP Issues</h3>
+    {{gbpIssueList}}
+
+    {{gbpFindings}}
+
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared for {{businessName}}</span>
+      <span>Page 7 of 9</span>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PAGE 8: AI ACCURACY & COMPETITORS -->
+  <!-- ============================================================ -->
+  <div class="page">
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>{{businessName}}</div>
+        <div>{{auditDate}}</div>
+      </div>
+    </div>
+
+    <h2>AI Accuracy &amp; Competitive Landscape</h2>
+
+    <p style="font-size: 11px; margin-bottom: 12px;">
+      When AI engines do mention your business, how accurate is the information?
+      This section compares your visibility against competitors in your space.
+    </p>
+
+    <!-- Competitor Table -->
+    <h3 style="margin-bottom: 6px;">Competitor Comparison</h3>
+    <table class="data-table" style="margin-bottom: 14px;">
+      <thead>
+        <tr>
+          <th>Business</th>
+          <th>Mention Rate</th>
+          <th>Overall Score</th>
+          <th>Rank</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{competitorRows}}
+      </tbody>
+    </table>
+
+    <!-- Sample AI Responses -->
+    <h3 style="margin-bottom: 6px;">Sample AI Responses</h3>
+    {{sampleResponses}}
+
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared for {{businessName}}</span>
+      <span>Page 8 of 9</span>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PAGE 9: ACTION PLAN -->
+  <!-- ============================================================ -->
+  <div class="page">
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>{{businessName}}</div>
+        <div>{{auditDate}}</div>
+      </div>
+    </div>
+
+    <h2>Action Plan</h2>
+
+    <p style="font-size: 11px; margin-bottom: 14px;">
+      The following prioritized recommendations will improve your AI readiness score.
+      Items are sorted by impact and labeled by effort level.
+    </p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width: 30px;">#</th>
+          <th>Action</th>
+          <th style="width: 70px;">Pillar</th>
+          <th style="width: 65px;">Impact</th>
+          <th style="width: 70px;">Effort</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{actionPlanRows}}
+      </tbody>
+    </table>
+
+    <!-- CTA -->
+    <div class="cta-box" style="margin-top: 20px;">
+      <h3>Ready to Improve Your AI Visibility?</h3>
+      <p style="margin-bottom: 6px;">Our 4-week AI Visibility Sprint can implement these changes for you.</p>
+      <p style="font-size: 12px; color: var(--color-accent); font-weight: 600;">
+        Visit pareconsulting.com or reply to this email to schedule your strategy call.
+      </p>
+    </div>
+
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared for {{businessName}}</span>
+      <span>Page 9 of 9</span>
+    </div>
+  </div>
+
+</body>
+</html>
