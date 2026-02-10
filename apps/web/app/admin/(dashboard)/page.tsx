@@ -1,4 +1,5 @@
 // Admin dashboard home page. Data fetched server-side via Drizzle ORM.
+export const dynamic = 'force-dynamic';
 import { db } from '../../../lib/db';
 import { clients, auditResults } from '@pare-engine/core';
 import { desc, count, avg, sql } from 'drizzle-orm';

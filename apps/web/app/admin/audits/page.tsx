@@ -1,4 +1,5 @@
 // All audits list page.
+export const dynamic = 'force-dynamic';
 import { db } from '../../../lib/db';
 import { clients, auditResults } from '@pare-engine/core';
 import { desc, count, avg, sql } from 'drizzle-orm';

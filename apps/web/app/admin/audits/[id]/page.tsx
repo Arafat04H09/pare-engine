@@ -1,4 +1,5 @@
 // Audit detail page.
+export const dynamic = 'force-dynamic';
 import { db } from '../../../../lib/db';
 import { clients, auditResults } from '@pare-engine/core';
 import { sql } from 'drizzle-orm';
