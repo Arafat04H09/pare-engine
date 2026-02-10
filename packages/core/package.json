@@ -21,11 +21,11 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^4.3.18",
+    "@ai-sdk/anthropic": "^3.0.41",
     "@notionhq/client": "^5.9.0",
     "@react-email/components": "^1.0.7",
     "@types/react": "^19.2.13",
-    "ai": "^4.3.16",
+    "ai": "^6.0.78",
     "cheerio": "^1.0.0-rc.12",
     "drizzle-orm": "^0.29.3",
     "pg": "^8.11.3",
