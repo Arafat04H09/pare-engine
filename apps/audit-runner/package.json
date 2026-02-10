@@ -9,8 +9,12 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.23",
+    "@ai-sdk/openai": "^3.0.26",
+    "@ai-sdk/perplexity": "^3.0.18",
     "@mendable/firecrawl-js": "^4.12.1",
     "@pare-engine/core": "workspace:*",
+    "ai": "^6.0.78",
     "inngest": "^3.0.0"
   },
   "devDependencies": {
