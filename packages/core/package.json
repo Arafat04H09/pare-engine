@@ -12,6 +12,10 @@
     "./contracts": {
       "types": "./dist/contracts/index.d.ts",
       "import": "./dist/contracts/index.js"
+    },
+    "./tools/crawler-analytics.js": {
+      "types": "./dist/tools/crawler-analytics.d.ts",
+      "import": "./dist/tools/crawler-analytics.js"
     }
   },
   "scripts": {
