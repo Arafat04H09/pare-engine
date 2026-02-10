@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<!--
+  Pare Engine — Verify Audit Delta Page
+  Owner: S20 (Verify Loop + Score History)
+  Data injected via template engine (same pattern as audit-full.html)
+  Shows before/after scores side-by-side with delta arrows
+  Uses shared styles from styles.css (S10)
+  Pillar max scores: 30, 30, 15, 10, 15 (canonical)
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Readiness Verification — {{businessName}}</title>
+  <style>{{styles}}</style>
+  <style>
+    /* Verify-specific styles (supplement shared styles.css) */
+
+    .delta-hero {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 24px 0;
+      margin-bottom: 20px;
+    }
+
+    .delta-score-box {
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .delta-score-box .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+    }
+
+    .delta-score-box .value {
+      font-family: var(--font-mono);
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--color-primary);
+      line-height: 1;
+    }
+
+    .delta-score-box .grade {
+      margin-top: 6px;
+    }
+
+    .delta-arrow-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .delta-arrow {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .delta-value {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .delta-positive { color: var(--color-success); }
+    .delta-negative { color: var(--color-danger); }
+    .delta-neutral { color: var(--color-text-light); }
+
+    /* Pillar comparison table */
+    .pillar-compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+
+    .pillar-compare-table th {
+      background: var(--color-primary);
+      color: var(--color-bg);
+      padding: 8px 10px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .pillar-compare-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 11px;
+    }
+
+    .pillar-compare-table tr:nth-child(even) {
+      background: var(--color-bg-light);
+    }
+
+    .pillar-compare-table .col-pillar {
+      font-weight: 600;
+      color: var(--color-primary);
+      width: 160px;
+    }
+
+    .pillar-compare-table .col-score {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      text-align: center;
+      width: 70px;
+    }
+
+    .pillar-compare-table .col-delta {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      text-align: center;
+      width: 80px;
+    }
+
+    .pillar-compare-table .col-bar {
+      width: auto;
+    }
+
+    /* Before/after bar visualization */
+    .compare-bar-container {
+      position: relative;
+      height: 18px;
+      display: flex;
+      gap: 2px;
+    }
+
+    .compare-bar {
+      height: 8px;
+      border-radius: 4px;
+      position: absolute;
+    }
+
+    .compare-bar-before {
+      background: var(--color-border);
+      top: 0;
+    }
+
+    .compare-bar-after {
+      top: 10px;
+    }
+
+    /* Summary cards */
+    .verify-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .verify-stat-card {
+      background: var(--color-bg-light);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .verify-stat-card .stat-value {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-primary);
+      line-height: 1;
+    }
+
+    .verify-stat-card .stat-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+
+    /* First audit banner */
+    .first-audit-banner {
+      background: linear-gradient(135deg, var(--color-primary) 0%, #2D4A7A 100%);
+      color: var(--color-bg);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .first-audit-banner h3 {
+      color: var(--color-bg);
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    .first-audit-banner p {
+      color: var(--color-accent);
+      font-size: 11px;
+      margin-bottom: 0;
+    }
+
+    /* Highlight card for biggest change */
+    .highlight-card {
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+
+    .highlight-improved {
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      border-left: 4px solid var(--color-success);
+    }
+
+    .highlight-declined {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-left: 4px solid var(--color-danger);
+    }
+
+    .highlight-card h4 {
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .highlight-card .highlight-delta {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .highlight-card p {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================ -->
+  <!-- VERIFY DELTA PAGE -->
+  <!-- ============================================================ -->
+  <div class="page">
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>{{businessName}}</div>
+        <div>{{verifyDate}}</div>
+      </div>
+    </div>
+
+    <h2>Verification Results</h2>
+
+    <p style="font-size: 11px; margin-bottom: 16px;">
+      This page compares your current AI Readiness Score with the previous audit
+      to measure the impact of implemented changes. Improvements are shown in
+      green, declines in red.
+    </p>
+
+    {{firstAuditBanner}}
+
+    <!-- Overall Score Comparison -->
+    <div class="delta-hero">
+      <div class="delta-score-box">
+        <div class="label">Previous</div>
+        <div class="value">{{beforeScore}}</div>
+        <div class="grade">
+          <span class="grade-badge grade-{{beforeGrade}}">{{beforeGrade}}</span>
+        </div>
+      </div>
+
+      <div class="delta-arrow-container">
+        {{overallDeltaArrow}}
+        <div class="delta-value {{overallDeltaClass}}">{{overallDeltaDisplay}}</div>
+      </div>
+
+      <div class="delta-score-box">
+        <div class="label">Current</div>
+        <div class="value">{{afterScore}}</div>
+        <div class="grade">
+          <span class="grade-badge grade-{{afterGrade}}">{{afterGrade}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="verify-summary-grid">
+      <div class="verify-stat-card">
+        <div class="stat-value delta-positive">{{pillarsImproved}}</div>
+        <div class="stat-label">Pillars Improved</div>
+      </div>
+      <div class="verify-stat-card">
+        <div class="stat-value delta-negative">{{pillarsDeclined}}</div>
+        <div class="stat-label">Pillars Declined</div>
+      </div>
+      <div class="verify-stat-card">
+        <div class="stat-value delta-neutral">{{pillarsUnchanged}}</div>
+        <div class="stat-label">Unchanged</div>
+      </div>
+    </div>
+
+    <!-- Per-Pillar Comparison Table -->
+    <h3 style="margin-bottom: 8px;">Pillar-by-Pillar Comparison</h3>
+    <table class="pillar-compare-table">
+      <thead>
+        <tr>
+          <th>Pillar</th>
+          <th style="text-align: center;">Before</th>
+          <th style="text-align: center;">After</th>
+          <th style="text-align: center;">Delta</th>
+          <th>Progress</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{pillarRows}}
+      </tbody>
+    </table>
+
+    <!-- Highlights -->
+    <div class="grid-2">
+      {{biggestImprovementCard}}
+      {{biggestDeclineCard}}
+    </div>
+
+    <!-- Grade Change -->
+    {{gradeChangeSection}}
+
+    <!-- CTA -->
+    <div class="cta-box" style="margin-top: auto;">
+      <h3>{{ctaTitle}}</h3>
+      <p>{{ctaText}}</p>
+    </div>
+
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared for {{businessName}}</span>
+      <span>Verification Report</span>
+    </div>
+  </div>
+
+</body>
+</html>
