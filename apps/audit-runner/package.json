@@ -9,6 +9,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@mendable/firecrawl-js": "^4.12.1",
     "@pare-engine/core": "workspace:*",
     "inngest": "^3.0.0"
   },
