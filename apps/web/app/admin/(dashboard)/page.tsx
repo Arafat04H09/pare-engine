@@ -1,0 +1,23 @@
+// Admin dashboard home page. Data fetched server-side via Drizzle ORM.
+import { db } from '../../../lib/db';
+import { clients, auditResults } from '@pare-engine/core';
+import { desc, count, avg, sql } from 'drizzle-orm';
+import { StatCard } from '../components/stat-card';
+import { ScoreBadge } from '../components/score-badge';
+import Link from 'next/link';
+async function getDashboardStats() {
+  const [clientCount, avgScoreR, sprints, retainers] = await Promise.all([
+    db.select({ value: count() }).from(clients),
+    db.select({ value: avg(clients.currentScore) }).from(clients),
+    db.select({ value: count() }).from(clients).where(sql`${clients.engagementType} = 'sprint_client' AND ${clients.sprintStatus} IS NOT NULL AND ${clients.sprintStatus} != 'complete'`),
+    db.select({ value: count() }).from(clients).where(sql`${clients.engagementType} = 'retainer'`),
+  ]);
+  const recentRaw = await db.select({ id: auditResults.id, overallScore: auditResults.overallScore, letterGrade: auditResults.letterGrade, auditDate: auditResults.auditDate, auditType: auditResults.auditType, clientId: auditResults.clientId }).from(auditResults).orderBy(desc(auditResults.auditDate)).limit(10);
+  const enrichResults = await Promise.allSettled(recentRaw.map(async (a) => { if (!a.clientId) return { ...a, businessName: null as string | null, domain: null as string | null }; const c = await db.select({ businessName: clients.businessName, domain: clients.domain }).from(clients).where(sql`${clients.id} = ${a.clientId}`).limit(1); return { ...a, businessName: c[0]?.businessName ?? null, domain: c[0]?.domain ?? null }; }));
+  const recentAudits = enrichResults.filter((r): r is PromiseFulfilledResult<(typeof recentRaw)[0] & { businessName: string | null; domain: string | null }> => r.status === 'fulfilled').map((r) => r.value);
+  return { totalClients: clientCount[0]?.value ?? 0, avgScore: Math.round(Number(avgScoreR[0]?.value ?? 0)), activeSprintCount: sprints[0]?.value ?? 0, activeRetainerCount: retainers[0]?.value ?? 0, recentAudits };
+}
+export default async function AdminDashboardPage(): Promise<JSX.Element> {
+  const stats = await getDashboardStats();
+  return (<div className="space-y-8"><div><h1 className="text-2xl font-bold text-gray-900">Dashboard</h1><p className="mt-1 text-sm text-gray-500">Overview of your consulting operations.</p></div><div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"><StatCard label="Total Clients" value={stats.totalClients} description="All engagement types" /><StatCard label="Average Score" value={stats.avgScore > 0 ? stats.avgScore : '--'} description="Across all clients" /><StatCard label="Active Sprints" value={stats.activeSprintCount} description="Currently in progress" /><StatCard label="Active Retainers" value={stats.activeRetainerCount} description="Monthly recurring" /></div><div><div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-semibold text-gray-900">Recent Audits</h2><Link href="/admin/audits" className="text-sm font-medium text-[#00D4AA]">View all</Link></div>{stats.recentAudits.length === 0 ? (<div className="rounded-lg border border-gray-200 bg-white p-8 text-center"><p className="text-gray-500">No audits yet.</p></div>) : (<div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm"><table className="min-w-full divide-y divide-gray-200"><thead className="bg-gray-50"><tr><th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Business</th><th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Score</th><th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th><th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Date</th><th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th></tr></thead><tbody className="divide-y divide-gray-200">{stats.recentAudits.map((audit) => (<tr key={audit.id} className="hover:bg-gray-50"><td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{audit.businessName ?? '--'}</td><td className="whitespace-nowrap px-6 py-4"><ScoreBadge score={audit.overallScore} letterGrade={audit.letterGrade} size="sm" /></td><td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{audit.auditType}</td><td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{new Date(audit.auditDate).toLocaleDateString()}</td><td className="whitespace-nowrap px-6 py-4 text-sm"><Link href={'/admin/audits/' + audit.id} className="font-medium text-[#1B2A4A]">View</Link></td></tr>))}</tbody></table></div>)}</div></div>);
+}
