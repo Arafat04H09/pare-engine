@@ -30,5 +30,17 @@
 - `apps/web/tsconfig.json` — Fixed path alias @/* to ./* , added Next.js 15 settings
 - `apps/web/next.config.ts` — Added reactStrictMode, poweredByHeader: false
 
+## Build Verification
+- `pnpm --filter @pare-engine/web build` succeeds (Next.js 15.5.12)
+- All routes compile and generate:
+  - `/` (static), `/about` (static), `/contact` (static), `/services` (static)
+  - `/admin` (static), `/admin/login` (dynamic)
+  - `/api/auth/logout` (dynamic)
+  - Middleware: 33.3 kB
+- Note: Build only succeeds when S16 untracked files (`admin/audits/`, `admin/clients/`, `admin/(dashboard)/`, `lib/db.ts`) are removed from the working directory. These files import modules that don't exist yet and cause webpack errors. They will be properly resolved when S16 merges with its full file set.
+
 ## Deviations
-- None. All files are within S14 OWNED list.
+- `apps/web/package.json` also modified to add `bcryptjs`, `tailwindcss`, `@tailwindcss/postcss`, `@types/bcryptjs` dependencies.
+- All page/layout components use `export default function` (required by Next.js App Router) instead of named exports.
+- Middleware uses Web Crypto API (`crypto.subtle`) instead of Node.js `crypto` for Edge Runtime compatibility.
+- Accidental S17 commit (`7659fee`) landed on this branch from concurrent session interference. It modifies only S17-owned files.
