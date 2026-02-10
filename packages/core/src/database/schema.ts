@@ -22,6 +22,11 @@ export const clients = pgTable('clients', {
   notes: text('notes'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+  return {
+    domainIdx: index('idx_clients_domain').on(table.domain),
+    verticalIdx: index('idx_clients_vertical').on(table.vertical),
+  };
 });
 
 export const auditResults = pgTable('audit_results', {
@@ -39,6 +44,10 @@ export const auditResults = pgTable('audit_results', {
   detailedResults: jsonb('detailed_results').notNull(),
   reportPdfUrl: text('report_pdf_url'),
   createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+  return {
+    clientDateIdx: index('idx_audit_results_client_date').on(table.clientId, table.auditDate),
+  };
 });
 
 export const monitoringResults = pgTable('monitoring_results', {
