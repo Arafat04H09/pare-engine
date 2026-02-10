@@ -1,18 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHmac } from 'crypto';
 
 const SESSION_COOKIE = 'pare_session';
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
 
-export function middleware(request: NextRequest): NextResponse {
+async function hmacSign(payload: string, secret: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+  return Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
-  // Allow /admin/login to pass through
   if (pathname === '/admin/login') {
     return NextResponse.next();
   }
 
-  // Only protect /admin/* routes
   if (!pathname.startsWith('/admin')) {
     return NextResponse.next();
   }
@@ -39,9 +51,7 @@ export function middleware(request: NextRequest): NextResponse {
   }
 
   const payload = id + '.' + timestamp;
-  const expectedSignature = createHmac('sha256', secret)
-    .update(payload)
-    .digest('hex');
+  const expectedSignature = await hmacSign(payload, secret);
 
   if (signature !== expectedSignature) {
     return redirectToLogin(request, true);

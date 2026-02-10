@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'AI Visibility Audit, Implementation Sprint, and Monthly Retainer services from Pare.',
 };
 
-export function ServicesPage() {
+export default function ServicesPage() {
   const services = [
     {
       name: 'AI Visibility Audit',

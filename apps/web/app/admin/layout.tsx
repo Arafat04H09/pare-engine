@@ -8,7 +8,7 @@ async function logoutAction(): Promise<void> {
   redirect('/admin/login');
 }
 
-export function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-navy-50">
       <nav className="bg-navy text-white">

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Get in touch with Pare for a free AI Visibility Audit or to discuss your GEO strategy.',
 };
 
-export function ContactPage() {
+export default function ContactPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="pt-24 pb-20 px-6">

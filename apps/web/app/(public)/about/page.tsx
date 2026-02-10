@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'Learn about Generative Engine Optimization (GEO) and how Pare helps businesses get found by AI.',
 };
 
-export function AboutPage() {
+export default function AboutPage() {
   const pillars = [
     { name: 'AI Visibility', weight: 30, desc: 'How often AI engines mention, cite, and recommend your business.' },
     { name: 'Content Quality', weight: 30, desc: 'Whether your content is structured for AI consumption: answer-first format, FAQs, statistics, authority signals.' },

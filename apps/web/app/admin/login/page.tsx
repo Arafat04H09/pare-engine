@@ -31,7 +31,7 @@ interface LoginPageProps {
   searchParams: Promise<{ error?: string; from?: string }>;
 }
 
-export async function LoginPage({ searchParams }: LoginPageProps) {
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const error = params.error;
   const from = params.from || '/admin';
