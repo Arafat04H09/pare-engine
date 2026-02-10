@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #1B2A4A;
+  --color-navy-50: #E8ECF2;
+  --color-navy-100: #D1D9E5;
+  --color-navy-200: #A3B3CB;
+  --color-navy-300: #758DB1;
+  --color-navy-400: #476797;
+  --color-navy-500: #1B2A4A;
+  --color-navy-600: #16223B;
+  --color-navy-700: #101A2D;
+  --color-navy-800: #0B111E;
+  --color-navy-900: #05090F;
+
+  --color-teal: #00D4AA;
+  --color-teal-50: #E6FBF6;
+  --color-teal-100: #CCF7ED;
+  --color-teal-200: #99EFDB;
+  --color-teal-300: #66E7C9;
+  --color-teal-400: #33DFB7;
+  --color-teal-500: #00D4AA;
+  --color-teal-600: #00AA88;
+  --color-teal-700: #007F66;
+  --color-teal-800: #005544;
+  --color-teal-900: #002A22;
+
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-success: #22C55E;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-navy);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
