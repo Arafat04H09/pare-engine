@@ -1,0 +1,18 @@
+{
+  "name": "@pare-engine/audit-runner",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@pare-engine/core": "workspace:*",
+    "inngest": "^3.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

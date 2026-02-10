@@ -1,0 +1,33 @@
+{
+  "name": "@pare-engine/core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src/**",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.29.3",
+    "zod": "^3.22.4",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.20.14",
+    "@types/pg": "^8.11.0",
+    "typescript": "^5.3.3"
+  }
+}

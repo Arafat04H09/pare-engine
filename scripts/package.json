@@ -1,0 +1,17 @@
+{
+  "name": "@pare-engine/scripts",
+  "version": "0.1.0",
+  "scripts": {
+    "test-audit": "ts-node test-audit.ts"
+  },
+  "dependencies": {
+    "@pare-engine/core": "workspace:*",
+    "@pare-engine/query-engine": "workspace:*",
+    "@pare-engine/site-crawler": "workspace:*",
+    "@pare-engine/report-generator": "workspace:*"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
