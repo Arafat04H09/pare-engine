@@ -5,7 +5,39 @@
       "Glob",
       "Grep",
       "Write",
-      "Edit"
+      "Edit",
+      "Bash"
     ]
+  },
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/context7-mcp@latest"]
+    },
+    "drizzle": {
+      "command": "npx",
+      "args": ["-y", "drizzle-mcp"]
+    },
+    "firecrawl": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
+      }
+    },
+    "stripe": {
+      "command": "npx",
+      "args": ["-y", "@stripe/agent-toolkit"],
+      "env": {
+        "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}"
+      }
+    },
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@notionhq/notion-mcp-server"],
+      "env": {
+        "NOTION_API_KEY": "${NOTION_API_KEY}"
+      }
+    }
   }
 }
