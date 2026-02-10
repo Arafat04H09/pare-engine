@@ -1,0 +1,215 @@
+# ===========================================================================
+# Pare Engine — Docker Compose (Production)
+# Owner: S22 (Production Deployment)
+#
+# Services:
+#   - postgres:      PostgreSQL 16 database
+#   - inngest:       Inngest Dev Server (self-hosted, handles durable steps)
+#   - web:           Next.js 15 web app (public site + admin + API routes)
+#   - audit-runner:  Inngest worker (audit pipeline with PDF generation)
+#
+# SSL/TLS is handled by Coolify/Caddy reverse proxy (not in this compose).
+# Coolify automatically provisions Let's Encrypt certificates and proxies
+# HTTPS traffic to the web service on port 3000.
+#
+# Deployment target: Hetzner CPX21 (~4 vCPU, 8 GB RAM, ~$8-13/mo)
+#
+# Usage:
+#   cp .env.production.example .env
+#   # Fill in .env with real values
+#   docker compose up -d
+#   docker compose logs -f
+# ===========================================================================
+
+services:
+  # -------------------------------------------------------------------------
+  # PostgreSQL 16
+  # -------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: pare-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pare_engine
+      POSTGRES_USER: ${POSTGRES_USER:-pare}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pare} -d pare_engine"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - pare-network
+
+  # -------------------------------------------------------------------------
+  # Inngest Dev Server (self-hosted)
+  #
+  # The Inngest dev server acts as the event bus and step function runtime.
+  # It receives events from the web app and dispatches them to the
+  # audit-runner worker. In production, this replaces the Inngest Cloud
+  # service with a self-hosted instance.
+  # -------------------------------------------------------------------------
+  inngest:
+    image: inngest/inngest:latest
+    container_name: pare-inngest
+    restart: unless-stopped
+    command: ["inngest", "dev", "--no-discovery", "--no-poll"]
+    environment:
+      INNGEST_EVENT_KEY: ${INNGEST_EVENT_KEY:?INNGEST_EVENT_KEY is required}
+      INNGEST_SIGNING_KEY: ${INNGEST_SIGNING_KEY:?INNGEST_SIGNING_KEY is required}
+    ports:
+      - "127.0.0.1:8288:8288"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8288/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - pare-network
+
+  # -------------------------------------------------------------------------
+  # Next.js Web App
+  #
+  # Serves the public website, audit form, admin panel, and API routes.
+  # API routes include: webhook handlers, Stripe integration, audit trigger.
+  # Note: There is no separate apps/api — routes live in apps/web/app/api/.
+  # -------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: pare-web
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      inngest:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pare}:${POSTGRES_PASSWORD}@postgres:5432/pare_engine
+
+      # Admin Auth
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL is required}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?ADMIN_PASSWORD_HASH is required}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+
+      # Inngest
+      INNGEST_EVENT_KEY: ${INNGEST_EVENT_KEY}
+      INNGEST_SIGNING_KEY: ${INNGEST_SIGNING_KEY}
+      INNGEST_BASE_URL: http://inngest:8288
+
+      # Stripe (webhooks)
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+
+      # Resend (for receipt emails triggered from API routes)
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - pare-network
+
+  # -------------------------------------------------------------------------
+  # Audit Runner (Inngest Worker)
+  #
+  # Runs the 6-step durable audit pipeline:
+  #   1. Crawl (Firecrawl)
+  #   2. Query (AI SDK -> OpenAI + Perplexity + Gemini)
+  #   3. Analyze (4 parallel analyzers)
+  #   4. Score (5 pillar scorers)
+  #   5. Report (HTML + Puppeteer PDF)
+  #   6. Deliver (Resend email + DB write)
+  #
+  # Includes Chromium for Puppeteer PDF generation.
+  # -------------------------------------------------------------------------
+  audit-runner:
+    build:
+      context: .
+      dockerfile: apps/audit-runner/Dockerfile
+    container_name: pare-audit-runner
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      inngest:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pare}:${POSTGRES_PASSWORD}@postgres:5432/pare_engine
+
+      # AI Engine API Keys (Tier 1 — required)
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY is required}
+      GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY:?GOOGLE_GENERATIVE_AI_API_KEY is required}
+      PERPLEXITY_API_KEY: ${PERPLEXITY_API_KEY:?PERPLEXITY_API_KEY is required}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY is required}
+
+      # Crawling (Tier 1 — required)
+      FIRECRAWL_API_KEY: ${FIRECRAWL_API_KEY:?FIRECRAWL_API_KEY is required}
+
+      # Google APIs (Tier 2 — optional)
+      GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}
+
+      # SERP & SEO (Tier 2 — optional)
+      SERPER_API_KEY: ${SERPER_API_KEY:-}
+      DATAFORSEO_LOGIN: ${DATAFORSEO_LOGIN:-}
+      DATAFORSEO_PASSWORD: ${DATAFORSEO_PASSWORD:-}
+
+      # Email
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+
+      # CRM
+      NOTION_API_KEY: ${NOTION_API_KEY:-}
+
+      # Inngest
+      INNGEST_EVENT_KEY: ${INNGEST_EVENT_KEY}
+      INNGEST_SIGNING_KEY: ${INNGEST_SIGNING_KEY}
+      INNGEST_SERVE_ORIGIN: http://audit-runner:3001
+
+      # Puppeteer
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
+    ports:
+      - "127.0.0.1:3001:3001"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    # Chromium needs more shared memory
+    shm_size: "256mb"
+    networks:
+      - pare-network
+
+# ---------------------------------------------------------------------------
+# Volumes
+# ---------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    driver: local
+
+# ---------------------------------------------------------------------------
+# Networks
+# ---------------------------------------------------------------------------
+networks:
+  pare-network:
+    driver: bridge
