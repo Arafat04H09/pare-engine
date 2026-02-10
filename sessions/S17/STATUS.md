@@ -1,21 +1,20 @@
-# S17 Status
+# S17: Notion Sync + Monitoring Setup
 
-- **Status**: pending
-- **Started**: —
-- **Completed**: —
-- **Branch**: —
+## Status: complete
+
+## Branch
+`session/S17-notion`
 
 ## Files Created
-(none yet)
+- `packages/core/src/tools/sync-notion.ts`
+- `apps/audit-runner/src/steps/sync-notion.ts`
+- `apps/web/app/api/webhooks/n8n/route.ts`
 
 ## Files Modified
-(none yet)
+- `packages/core/package.json` -- Added @notionhq/client ^5.9.0
+- `apps/audit-runner/package.json` -- Added @notionhq/client ^5.9.0
+- `pnpm-lock.yaml` -- Updated lockfile
 
-## Deviations from Spec
-(none yet)
-
-## Blockers
-(none)
-
-## Notes
-(none)
+## Deviations
+- Notion sync logic duplicated in audit-runner step (core lacks ./tools/* export)
+- Used Notion SDK v5.x API: dataSources.query() with data_source_id
