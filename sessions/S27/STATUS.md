@@ -1,21 +1,23 @@
 # S27 Status
 
-- **Status**: pending
-- **Started**: —
-- **Completed**: —
-- **Branch**: —
+- **Status**: complete
+- **Started**: 2026-02-10
+- **Completed**: 2026-02-10
+- **Branch**: session/S27-optimizer
 
 ## Files Created
-(none yet)
+- `packages/core/src/tools/content-optimizer.ts` (Content page rewriter using Claude via AI SDK)
 
 ## Files Modified
-(none yet)
+(none)
 
 ## Deviations from Spec
-(none yet)
+(none)
 
 ## Blockers
 (none)
 
 ## Notes
-(none)
+- Uses Claude via `generateText()` from `@ai-sdk/anthropic` for LLM-based content rewriting
+- Output is CMS-ready markdown in answer-first format
+- Handles short pages, long pages, and pages without a clear question
