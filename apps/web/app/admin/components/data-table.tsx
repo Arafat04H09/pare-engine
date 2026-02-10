@@ -1,0 +1,8 @@
+// Generic sortable data table.
+import Link from 'next/link';
+export interface Column<T> { key: string; label: string; sortable?: boolean; render?: (row: T) => React.ReactNode; }
+interface DataTableProps<T> { columns: Column<T>[]; data: T[]; sortKey?: string; sortDir?: 'asc' | 'desc'; basePath?: string; keyField?: keyof T; }
+export function DataTable<T extends Record<string, unknown>>({ columns, data, sortKey, sortDir = 'asc', basePath, keyField = 'id' as keyof T }: DataTableProps<T>) {
+  function sortHref(col: Column<T>): string | null { if (!col.sortable || !basePath) return null; const nd = sortKey === col.key && sortDir === 'asc' ? 'desc' : 'asc'; return `${basePath}?sort=${col.key}&dir=${nd}`; }
+  return (<div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm"><table className="min-w-full divide-y divide-gray-200"><thead className="bg-gray-50"><tr>{columns.map((col) => { const href = sortHref(col); return (<th key={col.key} className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{href ? (<Link href={href} className="inline-flex items-center gap-1 hover:text-gray-700">{col.label}{sortKey === col.key && <span>{sortDir === 'asc' ? ' ^' : ' v'}</span>}</Link>) : col.label}</th>); })}</tr></thead><tbody className="divide-y divide-gray-200">{data.map((row, idx) => (<tr key={String(row[keyField] ?? idx)} className="hover:bg-gray-50 transition-colors">{columns.map((col) => (<td key={col.key} className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">{col.render ? col.render(row) : String(row[col.key] ?? '--')}</td>))}</tr>))}</tbody></table></div>);
+}
