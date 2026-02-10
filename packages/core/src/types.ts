@@ -1,4 +1,11 @@
-export type Platform = 'chatgpt' | 'perplexity' | 'claude' | 'gemini' | 'google_aio';
+// Owner: S2 (Scoring Foundation) — refactored from legacy types.
+// Platform type now imports from contracts. Removed 'claude' (no web access)
+// and 'google_aio' (renamed to 'gemini' for clarity).
+
+import type { Platform } from './contracts/query.contract.js';
+
+// Re-export the canonical Platform type from contracts
+export type { Platform } from './contracts/query.contract.js';
 
 export interface QueryResult {
   platform: Platform;
@@ -82,12 +89,4 @@ export interface AuditResult {
     qAndAPresent: boolean;
     napConsistent: boolean;
   };
-}
-
-export interface ScoringWeights {
-  aiVisibility: number;
-  schema: number;
-  content: number;
-  technical: number;
-  gbp: number;
 }
