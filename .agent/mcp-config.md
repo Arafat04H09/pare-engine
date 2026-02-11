@@ -1,28 +1,49 @@
 # MCP Configuration for Pare Engine
 
-This document tracks the MCP servers integrated into the Pare Engine agentic workflow.
+This document tracks the MCP servers available in the Pare Engine agentic workflow.
 
-## Active MCP Servers
+## Active MCP Servers (11)
 
-### 1. Google Search (`google-search`)
-- **Purpose**: High-volume web research for the `research` and `search-tools` skills.
-- **Tools**: `search`, `list_sites`.
+### Core Development
+| Server | Purpose | Package |
+|--------|---------|---------|
+| `context7` | Documentation lookup for frameworks | `@anthropic-ai/context7-mcp` |
+| `drizzle` | Database schema management & queries | `drizzle-mcp` |
+| `github` | PR/issue management, repo operations | `@anthropic-ai/github-mcp-server` |
+| `playwright` | E2E testing & browser automation | `@anthropic-ai/playwright-mcp` |
 
-### 2. GitHub (`github`)
-- **Purpose**: Managing repository issues and PRs during the `build` phase.
-- **Tools**: `create_issue`, `list_pull_requests`.
+### External Services
+| Server | Purpose | Package |
+|--------|---------|---------|
+| `firecrawl` | Site crawling & content extraction | `firecrawl-mcp` |
+| `stripe` | Billing & subscription management | `@stripe/agent-toolkit` |
+| `notion` | Client CRM (first 10 clients) | `@notionhq/notion-mcp-server` |
+| `resend` | Email delivery testing | `mcp-send-email` |
 
-### 3. File Search (`file-search`)
-- **Purpose**: Deep code analysis during `gap-analysis` and `synthesize`.
-- **Tools**: `deep_grep`, `find_pattern`.
+### Research & Intelligence
+| Server | Purpose | Package |
+|--------|---------|---------|
+| `exa` | Semantic web search & company research | `exa-mcp-server` |
+| `local-falcon` | GBP ranking data & local SEO scans | `@local-falcon/mcp` |
+| `dataforseo` | Backlinks, keywords, SERP analysis | `dataforseo-mcp-server` |
 
-## Integration Points
+## Skill → MCP Integration Map
 
-| Skill | MCP Server | Tools Used |
-| :--- | :--- | :--- |
-| **gap-analysis** | `file-search` | `deep_grep` |
-| **research** | `google-search` | `search` |
-| **synthesize** | `file-search` | `deep_grep`, `find_pattern` |
-| **search-tools** | `google-search` | `search` |
-| **build** | `github` | `create_issue` |
-| **confirm** | `file-search` | `deep_grep` |
+| Skill | MCP Servers Used |
+| :--- | :--- |
+| **gap-analysis** | `context7` (docs), file tools |
+| **research** | `exa` (semantic search), `context7` (docs) |
+| **synthesize** | file tools |
+| **search-tools** | `exa` (search MCPs/tools) |
+| **decompose** | file tools |
+| **build** | `context7` (docs), `drizzle` (DB), `github` (issues) |
+| **confirm** | `playwright` (E2E), file tools |
+| **demo** | `firecrawl` (crawl), `local-falcon` (GBP) |
+| **test** | `playwright` (E2E) |
+| **security** | file tools |
+| **review** | file tools |
+| **onboard** | `context7` (docs), file tools |
+| **perf** | file tools |
+| **run-audit** | `firecrawl` (crawl), `local-falcon` (GBP) |
+| **deploy** | — |
+| **db-migrate** | `drizzle` |

@@ -272,6 +272,33 @@ Pipeline artifacts live in `pipeline/` (numbered subdirectories 1-7). Each skill
 
 Specs are written to `specs/` (not `pipeline/`). Entry at any point is supported — e.g., `/build specs/B-hardening/B2.1.md` works without running earlier steps.
 
+### Utility Skills
+
+- `/hotfix [file-or-description]` — Quick single-file fix, max 3 files, skips full pipeline
+- `/test [file-path]` — Generate Vitest tests with edge cases for a specific module
+- `/review [file-or-diff]` — Lightweight pre-commit convention check (12 rules)
+- `/demo [domain] [vertical]` — Quick audit demo for sales (1 provider, 5 prompts, ~2 min)
+- `/security [scope]` — Scan for secrets, OWASP vulns, missing validation
+- `/changelog [since-ref]` — Generate changelog from git history grouped by category
+- `/onboard [area]` — Context briefing for new agents (scoring, pipeline, web, tools, all)
+- `/perf [area]` — Profile bottlenecks in audit pipeline or specific modules
+
+### MCP Servers (11 configured)
+
+| Server | Purpose | Env Vars Needed |
+|--------|---------|-----------------|
+| context7 | Documentation lookup | — |
+| drizzle | DB schema management | — |
+| firecrawl | Site crawling | `FIRECRAWL_API_KEY` |
+| stripe | Billing (dev) | `STRIPE_SECRET_KEY` |
+| notion | Client CRM (dev) | `NOTION_API_KEY` |
+| playwright | E2E testing & browser automation | — |
+| exa | Semantic web search | `EXA_API_KEY` |
+| github | PR/issue management | `GITHUB_TOKEN` |
+| resend | Email testing (dev) | `RESEND_API_KEY` |
+| local-falcon | GBP ranking & local SEO scans | `LOCAL_FALCON_API_KEY` |
+| dataforseo | Backlinks, keywords, SERP data | `DATAFORSEO_USERNAME`, `DATAFORSEO_PASSWORD` |
+
 ## What NOT To Build (Deferred)
 
 - Client-facing dashboard (use PDF reports + Loom walkthroughs until 10+ retainer clients)

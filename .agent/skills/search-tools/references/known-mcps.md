@@ -2,15 +2,21 @@
 
 Last updated: 2026-02-10
 
-## Currently Installed
+## Currently Installed (11)
 
 | MCP Server | Purpose | Status |
 |-----------|---------|--------|
 | context7 | Documentation lookup | Active — dev only |
-| drizzle-mcp | Database schema management | Active — dev only |
-| firecrawl-mcp | Site crawling (dev) | Active — dev only |
-| stripe-mcp | Billing management (dev) | Active — dev only |
-| notion-mcp | Client management (dev) | Active — dev only |
+| drizzle | Database schema management | Active — dev only |
+| firecrawl | Site crawling | Active — dev + prod wrapper |
+| stripe | Billing management | Active — dev only (prod uses API) |
+| notion | Client management | Active — dev only |
+| playwright | E2E testing & browser automation | Active — dev only |
+| exa | Semantic web search & research | Active — dev only |
+| github | PR/issue management | Active — dev only |
+| resend | Email testing | Active — dev only (prod uses API) |
+| local-falcon | GBP ranking & local SEO scans | Active — dev + audit |
+| dataforseo | Backlinks, keywords, SERP data | Active — dev + competitive intel |
 
 ## Production API Wrappers (Not MCP)
 
@@ -40,4 +46,6 @@ Last updated: 2026-02-10
 
 | Tool | Type | Why Deferred | Revisit When |
 |------|------|-------------|-------------|
-| DataForSEO | API | Backlink/keyword data | When competitive intel needed |
+| Sentry MCP | Error monitoring | Not in production yet | After first deploy |
+| Docker MCP | Container management | Using Coolify, not direct Docker | If Coolify removed |
+| Browserbase MCP | Cloud browsers | Firecrawl covers crawling needs | If scale requires it |
