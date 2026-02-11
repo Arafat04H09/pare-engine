@@ -26,8 +26,8 @@ packages/core/src/contracts/  → Contract-first interfaces (Zod schemas, source
 apps/audit-runner/     → Inngest worker for the audit pipeline
 apps/web/              → Next.js 15: public website + audit form + admin panel
 docs/                  → Architecture, scoring, pipeline, business docs
-specs/                 → Build specs for pipeline-driven development
 improvements/          → Strategic analysis (latent intent, steelman, risks)
+pipeline/              → Development pipeline artifacts (per-cycle, ephemeral)
 ```
 
 There is no `apps/api` — API routes and webhooks live inside `apps/web/app/api/`.
@@ -69,11 +69,11 @@ apps/web/
 └── lib/auth.ts         → Session-based auth (single operator account)
 ```
 
-**Note:** The analyze step is split into 4 separate files (not one `analyze.ts`) to allow parallel development by different sessions.
+**Note:** The analyze step is split into 4 separate files (not one `analyze.ts`) to allow parallel development.
 
 ### Contract-First Development
 
-All shared types live in `packages/core/src/contracts/`. Sessions import contracts, never sibling implementations:
+All shared types live in `packages/core/src/contracts/`. Import contracts, never sibling implementations:
 
 ```typescript
 import { CrawlOutput } from '@pare-engine/core/contracts';     // ✅ Correct
@@ -138,14 +138,14 @@ Total:                  100 points → Letter grade A/B/C/D/F
 
 Source of truth: `packages/core/src/contracts/scoring.contract.ts`
 
-**Known bugs in legacy code:** `src/scoring.ts` uses wrong weights (35/25/20/10/10), sums raw scores instead of applying weights, and has B+/B-/C+ grades that don't exist in the spec. S2 replaces this entirely.
+**Known bugs in legacy code:** `src/scoring.ts` uses wrong weights (35/25/20/10/10), sums raw scores instead of applying weights, and has B+/B-/C+ grades that don't exist in the spec. The current `packages/core/src/scoring/` replaces this entirely.
 
 ### Platform Targets (Monitor These, Not Claude)
 - **OpenAI** — Responses API with built-in `web_search` tool
 - **Perplexity** — Sonar API (has native citations)
 - **Gemini** — with grounding enabled
 - **Serper.dev** — for traditional SERP data (replaces SerpAPI — better pricing)
-- **DataForSEO** — for backlink/keyword data (Round 6)
+- **DataForSEO** — for backlink/keyword data
 - Do NOT use Claude API for monitoring (no web access). Claude is for analysis/generation only.
 
 ## Stack
@@ -165,7 +165,7 @@ Source of truth: `packages/core/src/contracts/scoring.contract.ts`
 | Payments | Stripe | MCP for dev, API for prod |
 | Hosting | Hetzner CPX21 + Coolify | ~$8-13/mo total |
 | Testing | Vitest (unit) + Playwright (E2E) | |
-| SERP | Serper.dev + DataForSEO | Round 6 (competitive intelligence) |
+| SERP | Serper.dev + DataForSEO | Competitive intelligence |
 
 ## Coding Conventions
 
@@ -196,15 +196,15 @@ Each step is an Inngest durable step — independently retriable. If step 3 fail
 
 ## Contract Files (Source of Truth for Types)
 
-| File | Owner | What It Defines |
-|------|-------|----------------|
-| `config.contract.ts` | S1 | `ConfigSchema`, `ValidatedConfig`, `MinimalAuditConfig` |
-| `crawl.contract.ts` | S3 | `CrawlInput`, `CrawlOutput`, `CrawledPage` |
-| `query.contract.ts` | S4 | `Platform`, `QueryInput`, `MultiProviderResult`, `EngineResponse` |
-| `analysis.contract.ts` | S5-S8 | `ContentAnalysisOutput`, `SchemaAnalysisOutput`, `TechnicalAnalysisOutput`, `GBPAnalysisOutput` |
-| `scoring.contract.ts` | S2 | `SCORING_WEIGHTS`, `CompositeScore`, all 5 `PillarScore` schemas |
-| `report.contract.ts` | S10 | `FullReportData`, `MiniReportData`, `PdfOutput`, `ReportFinding` |
-| `pipeline.contract.ts` | S12 | `AuditRequest`, step interfaces, `AuditPipelineResult` |
+| File | What It Defines |
+|------|----------------|
+| `config.contract.ts` | `ConfigSchema`, `ValidatedConfig`, `MinimalAuditConfig` |
+| `crawl.contract.ts` | `CrawlInput`, `CrawlOutput`, `CrawledPage` |
+| `query.contract.ts` | `Platform`, `QueryInput`, `MultiProviderResult`, `EngineResponse` |
+| `analysis.contract.ts` | `ContentAnalysisOutput`, `SchemaAnalysisOutput`, `TechnicalAnalysisOutput`, `GBPAnalysisOutput` |
+| `scoring.contract.ts` | `SCORING_WEIGHTS`, `CompositeScore`, all 5 `PillarScore` schemas |
+| `report.contract.ts` | `FullReportData`, `MiniReportData`, `PdfOutput`, `ReportFinding` |
+| `pipeline.contract.ts` | `AuditRequest`, step interfaces, `AuditPipelineResult` |
 
 ## File References
 
@@ -212,8 +212,8 @@ Each step is an Inngest durable step — independently retriable. If step 3 fail
 - `VISION.md` — Living vision document, market thesis, three-layer architecture
 - `PRODUCT_PLAN.md` — Complete feature inventory with SHIPPED/WIRED/PARTIAL/PLANNED status
 - `docs/MASTER_BUILD_PLAN.md` — Architecture decisions, costs, conflict resolutions
-- `specs/` — Build specs for pipeline-driven development (`/decompose` output)
 - `improvements/` — Strategic analysis: latent intent, steelman, risks, recommendations
+- `pipeline/` — Development pipeline artifacts (ephemeral, per-cycle)
 
 ### Technical
 - `docs/ARCHITECTURE.md` — System architecture and data flow
@@ -256,7 +256,7 @@ Eight skills drive the development cycle (available in both `.claude/skills/` an
 
 **The pipeline is a DAG, not a chain.** `/research` and `/search-tools` can run in parallel (both feed into `/synthesize`). Multiple specs can `/build` in parallel within a wave. `/confirm` findings feed back into the next `/gap-analysis` cycle.
 
-Pipeline artifacts live in `pipeline/` (numbered subdirectories). Each skill auto-reads the previous step's output. Pass arguments to override. Entry at any point is supported — e.g., `/build specs/B-hardening/B2.1.md` works without running earlier steps.
+Pipeline artifacts live in `pipeline/` (numbered subdirectories). Each skill auto-reads the previous step's output. Pass arguments to override. Entry at any point is supported — e.g., `/build specs/my-spec.md` works without running earlier steps.
 
 See `docs/PIPELINE_GUIDE.md` for the complete reference with examples, shortcuts, and decision trees.
 

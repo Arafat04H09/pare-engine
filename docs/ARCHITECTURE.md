@@ -81,9 +81,6 @@ pare-engine/
 │       │   │   └── deliver.ts            # Email delivery + DB write
 │       │   └── index.ts
 │       └── package.json
-├── sessions/                  # 28 parallel build session specs
-│   ├── S1/SPEC.md ... S28/SPEC.md
-│   └── S{N}/STATUS.md        # Per-session progress tracking
 ├── docs/                      # Project documentation (you are here)
 ├── .claude/
 │   └── rules/                 # Auto-loaded rules for Claude Code sessions
@@ -94,8 +91,8 @@ pare-engine/
 │       ├── reports.md         # PDF generation rules
 │       └── database.md        # Drizzle ORM rules
 ├── CLAUDE.md                  # Project constitution (read first)
-├── COORDINATION.md            # Session ownership map + merge protocol
-├── BOOTSTRAP.md               # Round 0 checklist
+├── VISION.md                  # Living vision document
+├── PRODUCT_PLAN.md            # Feature inventory with status
 ├── turbo.json
 ├── pnpm-workspace.yaml
 └── package.json
@@ -103,19 +100,8 @@ pare-engine/
 
 **Key structural decisions:**
 - There is no `apps/api` — API routes and webhooks live inside `apps/web/app/api/`.
-- The analyze step is split into 4 separate files (not one `analyze.ts`) to allow parallel development by different sessions (S5, S6, S7, S8).
-- Contracts (`packages/core/src/contracts/`) are the source of truth for all shared types. All sessions import from contracts, never from sibling implementations.
-
-## Current State vs Target
-
-| Current | Target | Status |
-|---------|--------|--------|
-| `packages/core` | `packages/core` (expanded with contracts, tools, scoring/) | Contracts exist, rest being built |
-| `packages/query-engine` | `apps/audit-runner/src/steps/query-engines.ts` | Scaffold — deleted after Round 2 |
-| `packages/site-crawler` | `apps/audit-runner/src/steps/analyze-*.ts` | Scaffold — deleted after Round 2 |
-| `packages/report-generator` | `packages/core/src/report-templates/` | Scaffold — deleted after Round 2 |
-| `packages/core/src/contracts/` | (same) | **Already built** — 7 contract files |
-| `sessions/S{N}/SPEC.md` | (same) | **Already built** — 28 session specs |
+- The analyze step is split into 4 separate files (not one `analyze.ts`) to allow parallel development.
+- Contracts (`packages/core/src/contracts/`) are the source of truth for all shared types. Import from contracts, never from sibling implementations.
 
 ## Contract-First Architecture
 
@@ -177,35 +163,35 @@ All shared types live in `packages/core/src/contracts/`. This enables:
    OR: Admin panel re-run → Inngest event "audit/requested"
    OR: n8n schedule → Inngest event "audit/requested"
 
-2. CRAWL (Inngest Step 1) — S3
+2. CRAWL (Inngest Step 1)
    Firecrawl Map API → discover all URLs (limit: 50)
    Firecrawl Crawl API → extract content from top 20 pages
    → CrawlOutput { pages: CrawledPage[], discoveredUrls: string[] }
 
-3. QUERY (Inngest Step 2) — S4
+3. QUERY (Inngest Step 2)
    AI SDK generateText() → OpenAI (with web_search)
    AI SDK generateText() → Perplexity Sonar
    AI SDK generateText() → Gemini (with grounding)
    Promise.allSettled() per provider (graceful degradation)
    → MultiProviderResult { responses: EngineResponse[], failedPlatforms: string[] }
 
-4. ANALYZE (Inngest Step 3) — S5, S6, S7, S8
+4. ANALYZE (Inngest Step 3)
    4 parallel analyzers on crawl + query data:
    - Content analysis (LLM-based: answer-first, FAQ, stats) → ContentAnalysisOutput
    - Technical analysis (PageSpeed, robots.txt, llms.txt) → TechnicalAnalysisOutput
    - Schema analysis (JSON-LD extraction, gap analysis) → SchemaAnalysisOutput
    - GBP analysis (Google Places API, NAP consistency) → GBPAnalysisOutput
 
-5. SCORE (Inngest Step 4) — S2, S5-S9
+5. SCORE (Inngest Step 4)
    Apply 5-pillar scoring: 30 + 30 + 15 + 10 + 15 = 100
    → CompositeScore { overallScore, letterGrade, pillars: { ... } }
 
-6. REPORT (Inngest Step 5) — S10
+6. REPORT (Inngest Step 5)
    Inject data into HTML template
    Puppeteer page.pdf() → branded PDF
    → PdfOutput { buffer, filename, pageCount }
 
-7. DELIVER (Inngest Step 6) — S13
+7. DELIVER (Inngest Step 6)
    Resend API → HTML email + PDF attachment
    Update client record + audit_results table
    → AuditPipelineResult { emailSent, completedAt, durationMs }
@@ -252,7 +238,7 @@ n8n has a 5-minute MCP timeout. A full audit (20 pages crawl + 45 LLM queries + 
 - Self-hosts on a single binary with our existing PostgreSQL
 
 ### Why AI SDK, Not Custom Provider Classes
-The current `packages/query-engine/src/providers/` has 5 custom provider classes (all mocked). Vercel AI SDK v6 provides:
+Vercel AI SDK v6 provides:
 - Unified interface for 25+ providers
 - Built-in rate limiting, retries, streaming
 - `generateObject()` with Zod schema = guaranteed structured JSON
@@ -260,7 +246,7 @@ The current `packages/query-engine/src/providers/` has 5 custom provider classes
 - No custom retry/backoff/timeout code needed
 
 ### Why Firecrawl, Not Custom Playwright
-The current `packages/site-crawler/src/crawler.ts` has a stub crawlPages() that returns hardcoded paths. Firecrawl provides:
+Firecrawl provides:
 - Map API: discover all URLs on a site (replaces BFS crawler)
 - Crawl API: extract content with JS rendering (replaces Playwright)
 - Extract API: LLM-powered structured data extraction
@@ -268,7 +254,7 @@ The current `packages/site-crawler/src/crawler.ts` has a stub crawlPages() that 
 - We only need custom code for the ANALYSIS, not the crawling
 
 ### Why HTML→PDF, Not React-PDF
-The current `packages/report-generator` uses @react-pdf/renderer. Problems:
+@react-pdf/renderer was considered but rejected. Problems:
 - Limited CSS model (no grid, limited flexbox, no custom fonts easily)
 - #1 time-waster risk identified in feasibility analysis (80% likelihood of 1-2 weeks lost)
 - Can't reuse web CSS/components
@@ -279,10 +265,10 @@ HTML+CSS→Puppeteer benefits:
 - Same CSS knowledge applies to web and PDFs
 - Puppeteer `page.pdf()` is a single function call
 
-## Build Coordination
+## Development Pipeline
 
-This system is built by 28 parallel sessions organized into 9 rounds. See:
-- `COORDINATION.md` — Session ownership map, merge protocol, round launch order
-- `BOOTSTRAP.md` — Round 0 checklist
-- `sessions/S{N}/SPEC.md` — Per-session specs
-- `.claude/rules/coordination.md` — Auto-loaded session rules
+Development follows the pipeline model. See:
+- `docs/PIPELINE_GUIDE.md` — Complete pipeline reference
+- `.claude/rules/coordination.md` — Auto-loaded development rules
+- `VISION.md` — Living vision document
+- `PRODUCT_PLAN.md` — Feature inventory with status

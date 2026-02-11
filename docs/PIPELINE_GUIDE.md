@@ -192,7 +192,7 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 
 ---
 
-### Stage 6: Prepare (`/prepare`) — NEW
+### Stage 6: Prepare (`/prepare`)
 
 **Question answered:** "What's the fastest path to implementing each spec?"
 
@@ -218,7 +218,7 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 
 **Example:**
 ```
-/prepare specs/B-hardening/B2.1-scoring-visibility.md    # Single spec
+/prepare specs/B-hardening/B2.1-my-spec.md               # Single spec
 /prepare --wave 1                                         # All specs in wave 1
 /prepare --next                                           # Next ready specs
 ```
@@ -251,7 +251,7 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 
 **Example:**
 ```
-/build specs/B-hardening/B2.1-scoring-visibility.md     # Single spec
+/build specs/B-hardening/B2.1-my-spec.md                 # Single spec
 /build specs/B-hardening/                                # All ready specs in B-hardening folder
 /build --wave 1                                          # All ready specs in wave 1
 /build --next                                            # Next ready spec (default)
@@ -286,7 +286,7 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 
 **Example:**
 ```
-/confirm specs/B-hardening/B2.1-scoring-visibility.md   # Specific spec
+/confirm specs/B-hardening/B2.1-my-spec.md              # Specific spec
 /confirm                                                  # Most recent build
 ```
 
@@ -304,7 +304,7 @@ Use when: Starting a new development cycle. Takes 1-2 days for planning, then bu
 
 ### Quick Build (Spec Already Exists)
 ```
-/prepare specs/B2.1.md → /build specs/B2.1.md → /confirm specs/B2.1.md
+/prepare specs/my-spec.md → /build specs/my-spec.md → /confirm specs/my-spec.md
 ```
 Use when: Specs already exist and you want to implement one. Takes 3-10 hours.
 
@@ -316,7 +316,7 @@ Use when: Specs are decomposed and you want to build an entire wave or category.
 
 ### Direct Build (Simple, Clear Spec)
 ```
-/build specs/A1-build-fix.md → /confirm specs/A1-build-fix.md
+/build specs/my-spec.md → /confirm specs/my-spec.md
 ```
 Use when: The spec is simple and you don't need preparation. Takes 2-4 hours.
 
@@ -466,10 +466,10 @@ Each sub-agent gets its own full filesystem checkout. They can `pnpm build`, `pn
 
 ### Across Waves
 ```
-Wave 1:  /build A1 → A2 → A3 → A4 → A5 → A6        (sequential — dependencies)
-Wave 2:  /build B1.1 ←→ B1.2 ←→ B2.1 ←→ B2.2       (PARALLEL via worktrees)
-Wave 3:  /build B3.1 ←→ B3.2 ←→ B4 ←→ B5            (PARALLEL via worktrees)
-Wave 4:  /build D (testing suite)                      (after all builds complete)
+Wave 1:  /build --wave 1                              (sequential — dependencies)
+Wave 2:  /build --wave 2                              (PARALLEL via worktrees)
+Wave 3:  /build --wave 3                              (PARALLEL via worktrees)
+Wave 4:  /build --wave 4                              (after all builds complete)
 ```
 
 Waves execute sequentially (Wave 2 waits for Wave 1). Specs within each wave execute in parallel via worktrees. Use `/build --all` to automatically run all waves in order with parallelism within each wave.
