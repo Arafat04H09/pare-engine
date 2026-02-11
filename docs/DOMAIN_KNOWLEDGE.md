@@ -28,9 +28,12 @@ Traditional SEO optimizes for Google's search ranking. GEO optimizes for AI engi
 ## Pare's Competitive Position
 
 ### The Moat (What No Tool Replicates)
-1. **Done-for-you implementation** — Every tool tells you what's wrong. Pare fixes it. The audit → sprint → verify loop.
-2. **Branded PDF audit reports** — No tool generates agency-branded, client-ready reports programmatically.
-3. **Vertical-specific schema generation** — No tool generates Dentist, Attorney, MedicalProcedure schema. No CMS plugin handles this.
+1. **Audit-to-implement-to-verify loop** — Every tool tells you what's wrong. Pare fixes it and proves it worked. No competitor closes this loop.
+2. **Three-layer architecture (Tools, Intelligence, Workspace)** — Not a dashboard you look at. A workspace you work in, with a cognitive AI team (Analyst + Strategist + Specialist) as partner.
+3. **Vertical-specific intelligence** — No tool has industry-specific prompt libraries, schema requirements, or scoring profiles. After 20 clients in a vertical, the system knows which prompts surface businesses, which fixes move scores, and which patterns work.
+4. **Branded PDF audit reports** — No tool generates agency-branded, client-ready reports programmatically.
+5. **Vertical-specific schema generation** — No tool generates Dentist, Attorney, MedicalProcedure schema. No CMS plugin handles this.
+6. **LLM-based sentiment analysis** — Competitors use keyword matching. Pare uses Claude Haiku to evaluate how AI presents brands.
 
 ### The Commodity (What Tools Already Do)
 - AI visibility monitoring (Geoptie $49/mo, Otterly $29/mo)

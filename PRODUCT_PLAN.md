@@ -10,12 +10,14 @@
 
 ## The Thesis
 
-Pare is a **consulting operating system** for a solo GEO (Generative Engine Optimization) consultant. It audits how AI engines (ChatGPT, Perplexity, Gemini) see local businesses, scores their AI readiness on a 0-100 scale across 5 pillars, generates branded PDF reports, implements fixes, verifies improvements, and retains clients through ongoing monitoring.
+Pare is an **AI-native consulting operating system** for a solo GEO (Generative Engine Optimization) consultant. It's a three-layer system (Tools, Intelligence, Workspace) that audits how AI engines (ChatGPT, Perplexity, Gemini) perceive mid-sized businesses ($5M-$100M revenue), scores their AI readiness on a 0-100 scale across 5 pillars, generates branded PDF reports, implements fixes, verifies improvements, and retains clients through ongoing monitoring.
+
+**Beachhead market:** B2B SaaS ($8M-$40M ARR), then PE-backed multi-location healthcare. See `VISION.md` for full market thesis.
 
 The business model is three nested revenue loops:
-1. **Audit** ($500-$1,500) — Score a business, show them they're invisible to AI
-2. **Sprint** ($3,000-$5,000) — Implement fixes over 2-4 weeks, verify improvement
-3. **Retainer** ($2,000-$5,000/month) — Monitor, report, optimize continuously
+1. **Audit** ($2,000-$5,000) — Score a business, show them they're invisible to AI
+2. **Sprint** ($5,000-$15,000) — Implement fixes over 2-4 weeks, verify improvement
+3. **Retainer** ($3,000-$10,000/month) — Monitor, report, optimize continuously
 
 The moat compounds: after 20 clients in a vertical, the system knows which prompts surface businesses, which fixes move scores, and which patterns work. This knowledge is unreplicable without doing the work.
 
@@ -626,9 +628,9 @@ These are non-negotiable architectural decisions:
 
 - **GEO market:** $886M (2024) → $7.3B by 2031 (34% CAGR)
 - **Only 1.2%** of business locations recommended by ChatGPT
-- **Nobody** does audit + implement + verify as a connected workflow for local businesses
+- **Nobody** does audit + implement + verify as a connected workflow
 - **AI-referred leads convert 6-27X** higher than traditional search
-- **The window is open.** Early movers in each local market establish compounding advantages
+- **The window is open.** Early movers in each vertical establish compounding advantages
 
 ---
 

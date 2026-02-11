@@ -30,34 +30,47 @@ This is a consulting business backed by software, not a SaaS product. The softwa
 
 ## Target Client Profile
 
-### Segment 1: Local Service Businesses
+> **Beachhead priority order:** B2B SaaS first, PE-backed healthcare second, local/small businesses as opportunistic. See `VISION.md` for full market thesis.
+
+### Segment 1 (Primary): B2B SaaS Companies
+
+- **Revenue**: $8M-$40M ARR
+- **Size**: 50-200 employees
+- **Pain**: 73% of B2B websites lost significant organic traffic to AI search. Content teams produce 8-12 posts/month that get synthesized by AI without attribution. Pipeline down, CAC up.
+- **Buying trigger**: "Our organic MQLs dropped 40% and the board is asking questions"
+- **Budget**: $5-15K sprint, $3-10K/mo retainer
+- **Decision maker**: VP Marketing, CMO
+- **Timeline**: 2-4 weeks
+- **Why they buy**: A $5K/month retainer that recovers 20% of lost MQLs is a 4x ROI. These buyers already track content ROI — no education needed on why search matters. GBP is irrelevant, eliminating the most commoditized part of GEO.
+
+### Segment 2 (Secondary): PE-Backed Multi-Location Healthcare
+
+- **Revenue**: $5M-$100M
+- **Size**: 50-500 employees
+- **Verticals**: DSOs, regional healthcare groups, multi-location dental/legal, franchise operations
+- **Budget**: $7-15K sprint, $3-5K/mo retainer (scales with location count)
+- **Decision maker**: PE operating partner, VP Marketing, CMO
+- **Timeline**: 4-8 weeks
+- **Why they buy**: PE operating partners demand data — audit reports are exactly what they want for board meetings. Budget scales with location count ($150/location/month is trivial). After 3-5 DSO clients, accumulated vertical intelligence becomes a genuine moat.
+
+### Segment 3 (Opportunistic): Local Service Businesses
 
 - **Revenue**: $500K-$5M
 - **Size**: 5-50 employees
 - **Verticals**: Dental, legal, HVAC, accounting, plumbing, veterinary, physical therapy
 - **Pain**: "Referrals drying up, online leads inconsistent"
 - **Buying trigger**: "My competitor showed up in ChatGPT and I didn't"
-- **Budget**: $3-7K sprint, $1,500+/mo retainer
+- **Budget**: $2-5K sprint, $1,500+/mo retainer
 - **Decision maker**: Owner/partner, sometimes office manager
 - **Timeline**: 2-4 weeks
 - **Why they buy**: They saw a live demo where ChatGPT recommended a competitor. The fear of invisibility in a channel they don't understand is more motivating than any feature list.
 
-### Segment 2: Multi-Location Service Businesses
-
-- **Revenue**: $5M-$50M
-- **Size**: 50-500 employees
-- **Verticals**: Regional healthcare groups, multi-location dental/legal, franchise operations
-- **Budget**: $7-15K sprint, $1,500-3,000/mo retainer
-- **Decision maker**: VP Marketing, CMO, CEO
-- **Timeline**: 4-8 weeks
-- **Why they buy**: Brand consistency across locations in AI responses. One bad location answer poisons the whole brand.
-
-### Segment 3: Local E-commerce / DTC Brands
+### Segment 4 (Future): E-commerce / DTC Brands
 
 - **Revenue**: $1M-$20M
-- **Verticals**: Specialty retail, local artisan brands, regional e-commerce
+- **Verticals**: Specialty retail, DTC brands, regional e-commerce
 - **Buying trigger**: Agentic commerce awareness (UCP/ACP) -- AI agents will transact on behalf of customers
-- **Budget**: $5-10K sprint, $1,500-2,500/mo retainer
+- **Budget**: $5-10K sprint, $2-5K/mo retainer
 - **Why they buy**: Agentic commerce is an existential channel. If your product catalog is not machine-readable, AI shopping agents cannot recommend or purchase from you.
 
 ## What Clients Actually Need (And Don't Know)

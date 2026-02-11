@@ -25,12 +25,14 @@ Pare is three interlocking machines: a lead generation machine (batch audits -> 
 The market is real ($886M->$7.3B at 34% CAGR). The implementation gap is real (200+ monitoring tools, zero implementation tools). Solo operator economics are exceptional ($90/month costs vs $17.5K/month revenue at 5 retainers + 2 sprints). Delivery gets cheaper over time while price stays constant. The moat thickens with every client served.
 
 ### Where Vision Exceeds Reality
-The system has 5 gears. Only 1.5 are built:
-- **Prospecting:** 0%
-- **Sales/Audit:** 40% (pipeline works, delivery is `console.log`)
-- **Sprint Delivery:** 30% (tools exist, workflow missing)
-- **Retention/Monitoring:** 20% (schema exists, execution missing)
-- **Intelligence:** 10% (tables exist, logic missing)
+> **Note:** These completion estimates are from the initial analysis (Feb 2026) and may be outdated. Run `/gap-analysis` for current state.
+
+The system has 5 gears:
+- **Prospecting:** Minimal (batch auditing, outreach tooling not built)
+- **Sales/Audit:** Core pipeline functional (crawl → query → analyze → score → report → deliver)
+- **Sprint Delivery:** Tools exist (JSON-LD, FAQ, llms.txt, content optimizer), workflow partially wired
+- **Retention/Monitoring:** Schema and templates exist, scheduled execution not wired
+- **Intelligence:** Prompt library seeded, performance tracking schema exists, feedback loop not wired
 
 ### The Critical Path
 28 hours of work stands between the current codebase and first revenue:

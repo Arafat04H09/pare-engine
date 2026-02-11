@@ -5,11 +5,11 @@
 Pare offers four products in a deliberate upsell path. Each product naturally leads to the next. The audit creates urgency. The sprint delivers results. The retainer maintains and extends gains. The agentic commerce sprint captures the emerging AI transaction channel.
 
 **Upsell Path:**
-Free mini-audit --> Full audit ($750-1,500) --> Sprint ($3-7K) --> Retainer ($1,500+/mo) --> Agentic commerce sprint ($5-10K)
+Free mini-audit --> Full audit ($2,000-5,000) --> Sprint ($5-15K) --> Retainer ($3-10K/mo) --> Agentic commerce sprint ($5-10K)
 
 ---
 
-## Product 1: AI Readiness Audit ($750-$1,500)
+## Product 1: AI Readiness Audit ($2,000-$5,000)
 
 ### What It Is
 
@@ -44,13 +44,13 @@ The audit is not just a deliverable -- it is a designed sales experience:
 
 ### Pricing
 
-- **Standard audit**: $750 (single location, 3 competitors)
-- **Multi-location audit**: $1,500 (up to 5 locations, 5 competitors)
+- **Standard audit**: $2,000 (single domain, 3 competitors)
+- **Enterprise audit**: $5,000 (multi-location or complex site, 5 competitors)
 - **Batch audit** (prospecting): Free/internal cost -- used to generate leads, not sold directly
 
 ---
 
-## Product 2: AI Visibility Sprint ($3,000-$10,000)
+## Product 2: AI Visibility Sprint ($5,000-$15,000)
 
 ### What It Is
 
@@ -60,9 +60,9 @@ A 4-week implementation engagement where Pare implements all technical and conte
 
 | Tier | Price | For | Includes |
 |------|-------|-----|----------|
-| Starter | $3,000 | Single-location, <20 pages | Core schema + 5 pages optimized + GBP optimization |
-| Growth | $5,000 | Multi-service, WordPress/custom CMS | Full schema suite + 10 pages optimized + GBP + competitive report |
-| Enterprise | $7,000-$10,000 | Multi-location, e-commerce | Everything + agentic commerce readiness + multi-location schema |
+| Starter | $5,000 | Single domain, <20 pages | Core schema + 5 pages optimized + competitive report |
+| Growth | $8,000 | Multi-service, WordPress/custom CMS | Full schema suite + 10 pages optimized + GBP + competitive report |
+| Enterprise | $10,000-$15,000 | Multi-location, e-commerce, complex sites | Everything + agentic commerce readiness + multi-location schema |
 
 ### Sprint Deliverables (5 Packages)
 

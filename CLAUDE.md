@@ -11,39 +11,26 @@ Pare is a three-layer system (Tools, Intelligence, Workspace) that helps a solo 
 
 ## Repo State
 
-The repo is being built via 28 parallel sessions coordinated through a contract-first architecture. Read these before making changes:
+The initial 28-session parallel build is complete and merged to `main`. Development now follows the pipeline-driven model (`/gap-analysis` → `/build` → `/confirm`). Read these before making changes:
 
-- `COORDINATION.md` — Session ownership map, merge protocol, round launch order
-- `BOOTSTRAP.md` — Round 0 checklist (git init, workspace fixes, app scaffolds)
-- `sessions/S{N}/SPEC.md` — Per-session launcher specs
+- `VISION.md` — Living vision document, core thesis, market positioning
+- `PRODUCT_PLAN.md` — Complete feature inventory with status (SHIPPED/WIRED/PARTIAL/PLANNED)
 - `.claude/rules/coordination.md` — Auto-loaded rules for every session
+- `docs/PIPELINE_GUIDE.md` — Development pipeline reference
 
 ### What Exists Now
 
 ```
-packages/core/         → Shared foundation (types, contracts, scoring, DB schema)
+packages/core/         → Shared foundation (contracts, scoring, tools, DB schema, templates)
 packages/core/src/contracts/  → Contract-first interfaces (Zod schemas, source of truth)
-packages/query-engine/  → SCAFFOLD (reference only, being replaced)
-packages/site-crawler/  → SCAFFOLD (reference only, being replaced)
-packages/report-generator/ → SCAFFOLD (reference only, being replaced)
-sessions/              → 28 session SPEC.md files
-docs/                  → Architecture, scoring, pipeline, business docs
-```
-
-### What Gets Created (via Bootstrap + Sessions)
-
-```
 apps/audit-runner/     → Inngest worker for the audit pipeline
 apps/web/              → Next.js 15: public website + audit form + admin panel
+docs/                  → Architecture, scoring, pipeline, business docs
+specs/                 → Build specs for pipeline-driven development
+improvements/          → Strategic analysis (latent intent, steelman, risks)
 ```
 
 There is no `apps/api` — API routes and webhooks live inside `apps/web/app/api/`.
-
-### Scaffold Packages (Reference Only)
-
-`packages/query-engine`, `packages/site-crawler`, and `packages/report-generator` are Gemini-generated scaffolds with mocked implementations. They are deleted after Round 2. During the transition:
-- Treat their code as reference, not production
-- Salvageable logic is documented in each session's SPEC.md under "Scaffold Salvage"
 
 ## Architecture
 
@@ -222,10 +209,11 @@ Each step is an Inngest durable step — independently retriable. If step 3 fail
 ## File References
 
 ### Build Planning
-- `docs/MASTER_BUILD_PLAN.md` — Single source of truth for all build decisions, costs, conflicts
-- `COORDINATION.md` — Session ownership map, merge protocol, round launch order
-- `BOOTSTRAP.md` — Round 0 checklist (git init → first commit)
-- `sessions/S{N}/SPEC.md` — Per-session launcher specs (28 total)
+- `VISION.md` — Living vision document, market thesis, three-layer architecture
+- `PRODUCT_PLAN.md` — Complete feature inventory with SHIPPED/WIRED/PARTIAL/PLANNED status
+- `docs/MASTER_BUILD_PLAN.md` — Architecture decisions, costs, conflict resolutions
+- `specs/` — Build specs for pipeline-driven development (`/decompose` output)
+- `improvements/` — Strategic analysis: latent intent, steelman, risks, recommendations
 
 ### Technical
 - `docs/ARCHITECTURE.md` — System architecture and data flow
