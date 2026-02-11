@@ -6,35 +6,52 @@
 // Task 4.1: Semantic Review Orchestration
 
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { db } from '../../../../../../lib/db';
 import { auditResults, clients } from '@pare-engine/core';
+import { loadWebConfig } from '@pare-engine/core/config';
 import { sql } from 'drizzle-orm';
 import { scrapeCompetitorReviews } from '@pare-engine/core/tools/review-scraper';
 import { analyzeReviewSemantics } from '@pare-engine/core/tools/analyze-review-semantics';
 import { generateReviewCampaign } from '@pare-engine/core/tools/generate-review-campaign';
 import type { ReviewNGram } from '@pare-engine/core/tools/analyze-review-semantics';
+import { validateSession } from '@/lib/session';
 
-interface AnalyzeRequestBody {
-  action: 'analyze';
-  clientPlaceId: string;
-  competitorPlaceIds: string;
-}
+const AnalyzeRequestSchema = z.object({
+  action: z.literal('analyze'),
+  clientPlaceId: z.string().min(1),
+  competitorPlaceIds: z.string().min(1),
+});
 
-interface CampaignRequestBody {
-  action: 'campaign';
-  gapPhrases: ReviewNGram[];
-  recommendedClusters: string[];
-}
+const CampaignRequestSchema = z.object({
+  action: z.literal('campaign'),
+  gapPhrases: z.array(z.object({
+    phrase: z.string(),
+    count: z.number(),
+  })),
+  recommendedClusters: z.array(z.string()),
+});
 
-type RequestBody = AnalyzeRequestBody | CampaignRequestBody;
+const ReviewsRequestSchema = z.discriminatedUnion('action', [
+  AnalyzeRequestSchema,
+  CampaignRequestSchema,
+]);
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    if (!(await validateSession())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { id } = await params;
-    const body = (await request.json()) as RequestBody;
+    const raw = await request.json();
+    const parsed = ReviewsRequestSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid request body', details: parsed.error.flatten() }, { status: 400 });
+    }
+    const body = parsed.data;
 
     // Fetch audit + client data
     const auditRows = await db
@@ -94,7 +111,7 @@ export async function POST(
 // --- Analyze Handler ---
 
 async function handleAnalyze(
-  body: AnalyzeRequestBody,
+  body: z.infer<typeof AnalyzeRequestSchema>,
   businessName: string,
   vertical: string,
 ): Promise<NextResponse> {
@@ -120,7 +137,8 @@ async function handleAnalyze(
   }
 
   // Check for Apify API key
-  const apifyToken = process.env.APIFY_API_KEY ?? '';
+  const webConfig = loadWebConfig();
+  const apifyToken = webConfig.apifyApiKey ?? '';
   if (!apifyToken) {
     return NextResponse.json(
       {
@@ -179,7 +197,7 @@ async function handleAnalyze(
 // --- Campaign Handler ---
 
 async function handleCampaign(
-  body: CampaignRequestBody,
+  body: z.infer<typeof CampaignRequestSchema>,
   businessName: string,
   vertical: string,
   googlePlaceId?: string,

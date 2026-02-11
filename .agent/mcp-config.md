@@ -56,3 +56,4 @@ This document tracks the MCP servers available in the Pare Engine agentic workfl
 | **deploy** | `coolify` (deployment ops) |
 | **db-migrate** | `drizzle` |
 | **generate-schema** | `schema-org` (type + JSON-LD generation) |
+| **vision** | file tools |

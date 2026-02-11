@@ -19,6 +19,7 @@ Read the most recent outputs from earlier pipeline stages:
 
 - Most recent file in `pipeline/1-gap-analysis/` — gap inventory + critical path
 - Most recent file in `pipeline/2-research/` — research findings + actionable data
+- Most recent file in `pipeline/4-search-tools/` — tool evaluations (if exists — `/research` and `/search-tools` can run in parallel, so this may already be available)
 
 Also read for context:
 - `PRODUCT_PLAN.md` — Current feature inventory and status
@@ -60,6 +61,20 @@ The output MUST contain:
 - Build order with parallelization notes
 - Deferred items with reasoning
 - Total hour budget vs estimate
+
+## Refining Vision & Product Plan
+
+VISION.md and PRODUCT_PLAN.md are **living documents**. If synthesis reveals that the phasing, revenue model, or critical path needs adjustment, update them:
+
+- If the build strategy shows the PRODUCT_PLAN.md critical path is wrong, rewrite it
+- If feasibility assessment shows features should be re-prioritized, update PRODUCT_PLAN.md statuses
+- If the budget forces deferral of items the vision treats as immediate, update VISION.md's critical path
+- If synthesis reveals architectural patterns that should be captured as principles, add them
+
+Add `<!-- Updated by synthesize — YYYY-MM-DD -->` to any changed sections.
+
+**Stable** (don't change without user discussion): core thesis, three-layer architecture, unified principles.
+**Fluid** (update with evidence): critical path, feature priorities, phasing, effort estimates.
 
 ## Rules
 - Never propose changes that violate CLAUDE.md immutable constraints

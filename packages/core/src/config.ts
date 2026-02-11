@@ -8,8 +8,12 @@
 import {
   ConfigSchema,
   MinimalAuditConfigSchema,
+  WebConfigSchema,
+  PipelineConfigSchema,
   type ValidatedConfig,
   type MinimalAuditConfig,
+  type WebConfig,
+  type PipelineConfig,
 } from './contracts/config.contract.js';
 
 // ---------------------------------------------------------------------------
@@ -75,6 +79,18 @@ const ENV_KEY_MAP: Record<keyof ValidatedConfig, string> = {
   // Infrastructure
   inngestSigningKey: 'INNGEST_SIGNING_KEY',
   inngestEventKey: 'INNGEST_EVENT_KEY',
+
+  // Webhook Secrets
+  n8nWebhookSecret: 'N8N_WEBHOOK_SECRET',
+  crawlerLogWebhookSecret: 'CRAWLER_LOG_WEBHOOK_SECRET',
+
+  // Web App
+  nextPublicUrl: 'NEXT_PUBLIC_URL',
+  apifyApiKey: 'APIFY_API_KEY',
+  reportFromEmail: 'REPORT_FROM_EMAIL',
+
+  // Runtime
+  nodeEnv: 'NODE_ENV',
 };
 
 // ---------------------------------------------------------------------------
@@ -171,5 +187,43 @@ export function loadMinimalConfig(): MinimalAuditConfig {
   return result.data;
 }
 
+/**
+ * Loads and validates the WEB APP configuration (server components,
+ * API routes, middleware). Does not require AI provider API keys.
+ *
+ * @returns A `WebConfig` with database, auth, Stripe, and webhook settings.
+ * @throws `ConfigError` if any required web key is missing.
+ */
+export function loadWebConfig(): WebConfig {
+  const raw = readEnv();
+  const result = WebConfigSchema.safeParse(raw);
+
+  if (!result.success) {
+    const missingKeys = extractMissingKeys(result.error);
+    throw new ConfigError(missingKeys, result.error.message);
+  }
+
+  return result.data;
+}
+
+/**
+ * Loads and validates the PIPELINE configuration (audit-runner Inngest
+ * functions). Requires AI provider keys but not admin auth keys.
+ *
+ * @returns A `PipelineConfig` with API keys and database settings.
+ * @throws `ConfigError` if any required pipeline key is missing.
+ */
+export function loadPipelineConfig(): PipelineConfig {
+  const raw = readEnv();
+  const result = PipelineConfigSchema.safeParse(raw);
+
+  if (!result.success) {
+    const missingKeys = extractMissingKeys(result.error);
+    throw new ConfigError(missingKeys, result.error.message);
+  }
+
+  return result.data;
+}
+
 // Re-export types for convenience (consumers can also import from contracts)
-export type { ValidatedConfig, MinimalAuditConfig };
+export type { ValidatedConfig, MinimalAuditConfig, WebConfig, PipelineConfig };

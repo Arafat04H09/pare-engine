@@ -62,6 +62,16 @@ Write a manifest to `pipeline/5-decompose/manifest-YYYY-MM-DD.md` containing:
 - File ownership map (which spec owns which files)
 - Estimated total hours
 
+## Refining Vision & Product Plan
+
+VISION.md and PRODUCT_PLAN.md are **living documents**. If decomposition reveals scope issues or architectural conflicts, update them:
+
+- If splitting work reveals that a feature is much larger than estimated, update PRODUCT_PLAN.md to reflect realistic phasing
+- If file ownership conflicts expose architectural issues, flag them and update VISION.md's architecture section if needed
+- If the spec count exceeds the budget, update PRODUCT_PLAN.md to defer lower-priority items with reasoning
+
+Add `<!-- Updated by decompose — YYYY-MM-DD -->` to any changed sections.
+
 ## Rules
 - **Zero file overlap**: No two specs may own the same file. This is the #1 rule.
 - Each spec must have a verification command (usually `pnpm build` or `pnpm test`)

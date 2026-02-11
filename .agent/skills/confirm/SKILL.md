@@ -58,11 +58,15 @@ Check all modified files for:
 
 ### Level 5: Vision Alignment
 - Read `VISION.md`
-- Verify the changes align with:
+- Verify the changes align with the **stable** principles:
+  - Core thesis: audit → implement → verify loop
+  - Three-layer architecture: Tools, Intelligence, Workspace
   - Contract-driven architecture (Zod as source of truth)
+  - Model-agnostic cognitive team (Analyst/Strategist/Specialist roles)
   - Platform agnostic (ChatGPT, Perplexity, Gemini — not hardcoded to one)
   - Transparency (scores backed by citations)
   - Aesthetics first (if UI/report changes)
+- If the build exposed a vision assumption that doesn't hold, recommend a VISION.md update in the report (don't update it yourself — flag it for the next gap analysis cycle)
 
 ### Level 6: Regression Check
 - Run `pnpm test` and compare against last known passing count
@@ -80,6 +84,7 @@ The output MUST contain:
 - Violations list (if any)
 - Deviations list (if any)
 - Recommendations for follow-up (if any)
+- **Feedback for next cycle**: Issues found that should be flagged in the next `/gap-analysis` run. This closes the feedback loop — confirm findings flow back into the pipeline's start.
 
 ## Rules
 - A single Level 3 (boundary) violation means FAIL — this is non-negotiable

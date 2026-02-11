@@ -14,6 +14,7 @@
 // Uses Promise.allSettled() for multi-client processing.
 
 import { inngest } from '../inngest.js';
+import { loadPipelineConfig } from '@pare-engine/core/config';
 import type { CompositeScore } from '@pare-engine/core/contracts';
 import { scoreToGrade, SCORING_WEIGHTS } from '@pare-engine/core/contracts';
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -144,7 +145,7 @@ interface MonthlyReportResult {
 }
 
 // ---------------------------------------------------------------------------
-// Config
+// Config — uses core's loadPipelineConfig() for centralized env access
 // ---------------------------------------------------------------------------
 
 interface ReportConfig {
@@ -154,21 +155,19 @@ interface ReportConfig {
 }
 
 function loadReportConfig(): ReportConfig {
-  const get = (envKey: string, fallback?: string): string => {
-    const value = process.env[envKey];
-    if (!value && !fallback) {
-      throw new MonthlyReportError(
-        `Missing required environment variable: ${envKey}`,
-        'CONFIG_MISSING',
-      );
-    }
-    return value ?? fallback ?? '';
-  };
+  const pipelineConfig = loadPipelineConfig();
+
+  if (!pipelineConfig.resendApiKey) {
+    throw new MonthlyReportError(
+      'Missing required environment variable: RESEND_API_KEY',
+      'CONFIG_MISSING',
+    );
+  }
 
   return {
-    databaseUrl: get('DATABASE_URL'),
-    resendApiKey: get('RESEND_API_KEY'),
-    fromEmail: get('REPORT_FROM_EMAIL', 'reports@pareconsulting.com'),
+    databaseUrl: pipelineConfig.databaseUrl,
+    resendApiKey: pipelineConfig.resendApiKey,
+    fromEmail: pipelineConfig.reportFromEmail ?? 'reports@pareconsulting.com',
   };
 }
 

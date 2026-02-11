@@ -5,9 +5,22 @@
 // PATCH { remediationId, status, currentContent? } — Update status (approve/reject)
 
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { db } from '../../../lib/db';
 import { remediationItems, auditResults, clients } from '@pare-engine/core';
+import { validateSession } from '@/lib/session';
+
+const PostBodySchema = z.object({
+  remediationId: z.string().min(1),
+  auditId: z.string().min(1),
+});
+
+const PatchBodySchema = z.object({
+  remediationId: z.string().min(1),
+  status: z.enum(['approved', 'rejected']),
+  currentContent: z.string().optional(),
+});
 
 // ---------------------------------------------------------------------------
 // Error Helpers
@@ -23,6 +36,7 @@ function errorResponse(message: string, status: number): NextResponse {
 
 export async function GET(request: Request): Promise<NextResponse> {
   try {
+    if (!(await validateSession())) { return errorResponse('Unauthorized', 401); }
     const url = new URL(request.url);
     const auditId = url.searchParams.get('auditId');
 
@@ -46,18 +60,15 @@ export async function GET(request: Request): Promise<NextResponse> {
 // POST /api/remediation — Generate content for a remediation item
 // ---------------------------------------------------------------------------
 
-interface PostBody {
-  remediationId: string;
-  auditId: string;
-}
-
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const body = (await request.json()) as PostBody;
-
-    if (!body.remediationId || !body.auditId) {
-      return errorResponse('Missing remediationId or auditId', 400);
+    if (!(await validateSession())) { return errorResponse('Unauthorized', 401); }
+    const raw = await request.json();
+    const parsed = PostBodySchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid request body', details: parsed.error.flatten() }, { status: 400 });
     }
+    const body = parsed.data;
 
     // 1. Fetch the remediation item
     const remRows = await db
@@ -157,23 +168,15 @@ export async function POST(request: Request): Promise<NextResponse> {
 // PATCH /api/remediation — Update status (approve/reject)
 // ---------------------------------------------------------------------------
 
-interface PatchBody {
-  remediationId: string;
-  status: 'approved' | 'rejected';
-  currentContent?: string;
-}
-
 export async function PATCH(request: Request): Promise<NextResponse> {
   try {
-    const body = (await request.json()) as PatchBody;
-
-    if (!body.remediationId) {
-      return errorResponse('Missing remediationId', 400);
+    if (!(await validateSession())) { return errorResponse('Unauthorized', 401); }
+    const raw = await request.json();
+    const parsed = PatchBodySchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid request body', details: parsed.error.flatten() }, { status: 400 });
     }
-
-    if (!body.status || !['approved', 'rejected'].includes(body.status)) {
-      return errorResponse('Status must be "approved" or "rejected"', 400);
-    }
+    const body = parsed.data;
 
     // Verify the remediation exists
     const remRows = await db

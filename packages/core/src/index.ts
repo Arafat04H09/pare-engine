@@ -4,7 +4,9 @@
 export * from './types.js';
 export * from './database/schema.js';
 export * from './scoring/index.js';
-export { loadConfig, loadMinimalConfig, ConfigError } from './config.js';
+export { loadConfig, loadMinimalConfig, loadWebConfig, loadPipelineConfig, ConfigError } from './config.js';
 
-// Tools — explicit re-exports to avoid name collisions with types.ts/contracts
-export { sendReport, type SendReportInput, type SendReportOutput } from './tools/send-report.js';
+// Tools — re-export from the tools barrel
+// Consumers can also import from '@pare-engine/core/tools' or
+// '@pare-engine/core/tools/<name>' for tree-shaking.
+export * from './tools/index.js';

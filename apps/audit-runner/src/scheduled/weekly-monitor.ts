@@ -12,9 +12,11 @@
 // Each client is processed independently — one failure does not block others.
 
 import { inngest } from '../inngest.js';
+import { loadPipelineConfig } from '@pare-engine/core/config';
 import type {
   Platform,
   EngineResponse,
+  PipelineConfig,
 } from '@pare-engine/core/contracts';
 import { ALL_PLATFORMS } from '@pare-engine/core/contracts';
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -76,35 +78,10 @@ interface WeeklyMonitorResult {
 }
 
 // ---------------------------------------------------------------------------
-// Config
+// Config — uses core's loadPipelineConfig() for centralized env access
 // ---------------------------------------------------------------------------
 
-interface MonitorConfig {
-  databaseUrl: string;
-  openaiApiKey: string;
-  googleGenerativeAiApiKey: string;
-  perplexityApiKey: string;
-}
-
-function loadMonitorConfig(): MonitorConfig {
-  const get = (envKey: string): string => {
-    const value = process.env[envKey];
-    if (!value) {
-      throw new WeeklyMonitorError(
-        `Missing required environment variable: ${envKey}`,
-        'CONFIG_MISSING',
-      );
-    }
-    return value;
-  };
-
-  return {
-    databaseUrl: get('DATABASE_URL'),
-    openaiApiKey: get('OPENAI_API_KEY'),
-    googleGenerativeAiApiKey: get('GOOGLE_GENERATIVE_AI_API_KEY'),
-    perplexityApiKey: get('PERPLEXITY_API_KEY'),
-  };
-}
+type MonitorConfig = PipelineConfig;
 
 // ---------------------------------------------------------------------------
 // Default Monitoring Queries
@@ -190,7 +167,7 @@ export const weeklyMonitor = inngest.createFunction(
   },
   { cron: '0 6 * * 1' }, // Every Monday at 6:00 AM UTC
   async ({ step }) => {
-    const config = loadMonitorConfig();
+    const config = loadPipelineConfig();
 
     // -----------------------------------------------------------------------
     // Step 1: Fetch retainer clients

@@ -3,6 +3,25 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
+  "main": "./dist/pipeline.js",
+  "exports": {
+    "./inngest": {
+      "types": "./dist/inngest.d.ts",
+      "import": "./dist/inngest.js"
+    },
+    "./pipeline": {
+      "types": "./dist/pipeline.d.ts",
+      "import": "./dist/pipeline.js"
+    },
+    "./scheduled/weekly-monitor": {
+      "types": "./dist/scheduled/weekly-monitor.d.ts",
+      "import": "./dist/scheduled/weekly-monitor.js"
+    },
+    "./scheduled/monthly-report": {
+      "types": "./dist/scheduled/monthly-report.d.ts",
+      "import": "./dist/scheduled/monthly-report.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",

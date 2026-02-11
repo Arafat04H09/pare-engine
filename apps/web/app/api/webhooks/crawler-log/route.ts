@@ -10,8 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import pg from 'pg';
+import { db } from '@/lib/db';
 import {
   CrawlerLogWebhookRequestSchema,
   processCrawlerLogBatch,
@@ -19,6 +18,7 @@ import {
   type CrawlerLogWebhookResponse,
   type ParsedBotVisit,
 } from '@pare-engine/core/tools/crawler-analytics';
+import { loadWebConfig } from '@pare-engine/core/config';
 
 // ---------------------------------------------------------------------------
 // Error class
@@ -32,19 +32,6 @@ export class CrawlerLogWebhookError extends Error {
     this.name = 'CrawlerLogWebhookError';
     this.code = code;
   }
-}
-
-// ---------------------------------------------------------------------------
-// Database helper
-// ---------------------------------------------------------------------------
-
-function getDb() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new CrawlerLogWebhookError('DATABASE_URL is not set', 'DB_NOT_CONFIGURED');
-  }
-  const pool = new pg.Pool({ connectionString: databaseUrl });
-  return drizzle(pool);
 }
 
 // ---------------------------------------------------------------------------
@@ -68,7 +55,8 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   // Step 1: Authenticate
-  const webhookSecret = process.env.CRAWLER_LOG_WEBHOOK_SECRET;
+  const webConfig = loadWebConfig();
+  const webhookSecret = webConfig.crawlerLogWebhookSecret;
   if (!webhookSecret) {
     console.error('[S28] crawler-log webhook: CRAWLER_LOG_WEBHOOK_SECRET not set');
     return NextResponse.json(
@@ -148,7 +136,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   // Authenticate
-  const webhookSecret = process.env.CRAWLER_LOG_WEBHOOK_SECRET;
+  const webConfig = loadWebConfig();
+  const webhookSecret = webConfig.crawlerLogWebhookSecret;
   if (!webhookSecret) {
     console.error('[S28] crawler-log webhook: CRAWLER_LOG_WEBHOOK_SECRET not set');
     return NextResponse.json(
@@ -224,7 +213,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
  * Each visit is stored as a row with the bot details in the JSONB fields.
  */
 async function storeBotVisits(visits: ParsedBotVisit[], domain: string): Promise<void> {
-  const db = getDb();
 
   // We use a raw SQL insert for the crawler_visits concept, leveraging the
   // existing monitoring_results table structure. The domain is stored in
@@ -271,7 +259,6 @@ async function queryBotVisits(
   endDate: Date,
   botName?: string,
 ): Promise<ParsedBotVisit[]> {
-  const db = getDb();
   const { monitoringResults } = await import('@pare-engine/core');
 
   const conditions = [

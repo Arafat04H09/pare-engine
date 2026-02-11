@@ -9,6 +9,21 @@
       "Bash"
     ]
   },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/validate-file-ownership.sh",
+            "timeout": 10,
+            "statusMessage": "Checking file ownership..."
+          }
+        ]
+      }
+    ]
+  },
   "mcpServers": {
     "context7": {
       "command": "npx",
@@ -97,6 +112,14 @@
         "COOLIFY_ACCESS_TOKEN": "${COOLIFY_ACCESS_TOKEN}",
         "COOLIFY_BASE_URL": "${COOLIFY_BASE_URL}"
       }
+    },
+    "git-worktree": {
+      "command": "npx",
+      "args": ["-y", "git-worktree-mcp"]
+    },
+    "git": {
+      "command": "npx",
+      "args": ["-y", "@cyanheads/git-mcp-server"]
     }
   }
 }

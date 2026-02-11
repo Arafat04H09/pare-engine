@@ -1,12 +1,16 @@
 ---
 name: search-tools
-description: Search for MCP servers, npm packages, and APIs that can accelerate development.
+description: >
+  Search for MCP servers, npm packages, and APIs that can accelerate development.
+  Evaluates found tools against Pare's architecture and recommends USE/BUILD/DEFER.
+argument-hint: "[capability-needed]"
+allowed-tools: Read, Grep, Glob, WebSearch, WebFetch, Bash(git log *)
+context: fork
 ---
 
-# Skill: Search Tools
+# Search Tools
 
-## Purpose
-Search for external tools (MCP servers, npm packages, APIs) that can accelerate Pare Engine development. Evaluates found tools against Pare's architecture and recommends USE/BUILD/DEFER for each.
+You are searching for external tools (MCP servers, npm packages, APIs) that can accelerate Pare Engine development.
 
 ## Inputs
 
@@ -14,19 +18,18 @@ Read the most recent synthesis output:
 - Most recent file in `pipeline/3-synthesis/` — strategy with capability needs
 
 Also read for context:
-- `CLAUDE.md` — Settled tool decisions (do NOT search for alternatives to these)
-- The `references/known-mcps.md` file in this directory — Previously evaluated tools
+- `references/known-mcps.md` — Previously evaluated tools
 
-If a specific capability was requested by the user, prioritize that.
+If a specific capability was requested: $ARGUMENTS
 
 ## Process
 
 1. **Extract Capability Needs**: From the synthesis strategy, identify capabilities that could be satisfied by external tools rather than custom code.
 
 2. **Search MCP Registries**: For each capability, search:
-   - smithery.ai — MCP server registry
-   - mcp.so — MCP directory
-   - glama.ai/mcp — MCP catalog
+   - [smithery.ai](https://smithery.ai) — MCP server registry
+   - [mcp.so](https://mcp.so) — MCP directory
+   - [glama.ai/mcp](https://glama.ai/mcp) — MCP catalog
    - Search queries: "[capability] MCP server", "[tool] MCP"
 
 3. **Search npm**: For capabilities not covered by MCPs:
@@ -60,8 +63,17 @@ The output MUST contain:
 - Architecture notes for BUILD tools
 - Updated known-mcps reference data
 
+## Refining Vision & Product Plan
+
+VISION.md and PRODUCT_PLAN.md are **living documents**. If tool search reveals capabilities that change what should be built vs bought, update them:
+
+- If a found tool makes a PLANNED feature trivial, update PRODUCT_PLAN.md status to reflect the new approach
+- If a tool enables capabilities not in the vision, add them to the appropriate section
+- If tool pricing affects the cost architecture in VISION.md, update the cost table
+
+Add `<!-- Updated by search-tools — YYYY-MM-DD -->` to any changed sections.
+
 ## Rules
-- Never recommend replacing settled tool decisions from CLAUDE.md
 - Prefer MCP servers over npm packages over custom code
 - Prefer tools with TypeScript support and Zod compatibility
 - Free tier must support at least 10 clients before recommending paid tools

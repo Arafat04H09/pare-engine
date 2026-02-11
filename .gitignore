@@ -2,6 +2,25 @@ node_modules/
 dist/
 .next/
 .env
-.env.local
+.env.*
+!.env.example
+!.env.production.example
 *.tsbuildinfo
 .turbo/
+.wt/
+.worktrees/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Debug
+*.log
+npm-debug.log*
+pnpm-debug.log*

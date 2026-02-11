@@ -31,6 +31,13 @@ export interface PareEvents {
       durationMs: number;
     };
   };
+  'monitoring/weekly': {
+    data: {
+      clientIds: string[];
+      triggeredBy: string;
+      triggeredAt: string;
+    };
+  };
 }
 
 // ---------------------------------------------------------------------------

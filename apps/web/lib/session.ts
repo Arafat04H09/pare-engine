@@ -1,15 +1,18 @@
 import { cookies } from 'next/headers';
 import { createHmac, randomBytes } from 'crypto';
+import { loadWebConfig } from '@pare-engine/core/config';
 
 const SESSION_COOKIE = 'pare_session';
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
 
 function getSecret(): string {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret || secret.length < 32) {
-    throw new Error('SESSION_SECRET must be set and at least 32 characters');
-  }
-  return secret;
+  const config = loadWebConfig();
+  return config.sessionSecret;
+}
+
+function isProduction(): boolean {
+  const config = loadWebConfig();
+  return config.nodeEnv === 'production';
 }
 
 function sign(payload: string, secret: string): string {
@@ -27,7 +30,7 @@ export async function createSession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction(),
     sameSite: 'lax',
     maxAge: SESSION_MAX_AGE,
     path: '/',
@@ -68,7 +71,7 @@ export async function destroySession(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction(),
     sameSite: 'lax',
     maxAge: 0,
     path: '/',

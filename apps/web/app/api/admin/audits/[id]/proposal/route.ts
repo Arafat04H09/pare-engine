@@ -9,6 +9,7 @@ import { sql } from 'drizzle-orm';
 import { generateProposal } from '@pare-engine/core/tools/generate-proposal';
 import type { CompositeScore } from '@pare-engine/core/contracts';
 import { SCORING_WEIGHTS, scoreToGrade } from '@pare-engine/core/contracts';
+import { validateSession } from '@/lib/session';
 
 /**
  * Reconstructs a CompositeScore from the flattened audit result DB row.
@@ -105,6 +106,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
+    if (!(await validateSession())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const { id } = await params;
 
     // Fetch audit result

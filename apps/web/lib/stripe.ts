@@ -2,6 +2,7 @@
 // Stripe client setup for server-side usage.
 
 import Stripe from 'stripe';
+import { loadWebConfig } from '@pare-engine/core/config';
 
 class StripeConfigError extends Error {
   code = 'STRIPE_CONFIG_ERROR' as const;
@@ -12,7 +13,8 @@ class StripeConfigError extends Error {
 }
 
 function getStripeSecretKey(): string {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const config = loadWebConfig();
+  const key = config.stripeSecretKey;
   if (!key) {
     throw new StripeConfigError(
       'STRIPE_SECRET_KEY is not set. Add it to your environment variables.'
@@ -22,7 +24,8 @@ function getStripeSecretKey(): string {
 }
 
 function getStripeWebhookSecret(): string {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const config = loadWebConfig();
+  const secret = config.stripeWebhookSecret;
   if (!secret) {
     throw new StripeConfigError(
       'STRIPE_WEBHOOK_SECRET is not set. Add it to your environment variables.'

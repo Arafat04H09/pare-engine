@@ -8,6 +8,7 @@
 
 import { NextResponse } from 'next/server';
 import { Inngest } from 'inngest';
+import { loadWebConfig } from '@pare-engine/core/config';
 
 // ---------------------------------------------------------------------------
 // Error class
@@ -50,7 +51,8 @@ function timingSafeEqual(a: string, b: string): boolean {
 // ---------------------------------------------------------------------------
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const webhookSecret = process.env.N8N_WEBHOOK_SECRET;
+  const webConfig = loadWebConfig();
+  const webhookSecret = webConfig.n8nWebhookSecret;
   if (!webhookSecret) {
     console.error('[S17] n8n webhook: N8N_WEBHOOK_SECRET environment variable not set');
     return NextResponse.json(

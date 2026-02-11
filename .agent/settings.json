@@ -1,0 +1,173 @@
+{
+    "permissions": {
+        "allow": [
+            "Read",
+            "Glob",
+            "Grep",
+            "Write",
+            "Edit",
+            "Bash"
+        ]
+    },
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/validate-file-ownership.sh",
+                        "timeout": 10,
+                        "statusMessage": "Checking file ownership..."
+                    }
+                ]
+            }
+        ]
+    },
+    "mcpServers": {
+        "context7": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@anthropic-ai/context7-mcp@latest"
+            ]
+        },
+        "drizzle": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "drizzle-mcp"
+            ]
+        },
+        "firecrawl": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "firecrawl-mcp"
+            ],
+            "env": {
+                "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
+            }
+        },
+        "stripe": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@stripe/agent-toolkit"
+            ],
+            "env": {
+                "STRIPE_SECRET_KEY": "${STRIPE_SECRET_KEY}"
+            }
+        },
+        "notion": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@notionhq/notion-mcp-server"
+            ],
+            "env": {
+                "NOTION_API_KEY": "${NOTION_API_KEY}"
+            }
+        },
+        "playwright": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@anthropic-ai/playwright-mcp@latest"
+            ]
+        },
+        "exa": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "exa-mcp-server"
+            ],
+            "env": {
+                "EXA_API_KEY": "${EXA_API_KEY}"
+            }
+        },
+        "github": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@anthropic-ai/github-mcp-server"
+            ],
+            "env": {
+                "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+            }
+        },
+        "resend": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "mcp-send-email"
+            ],
+            "env": {
+                "RESEND_API_KEY": "${RESEND_API_KEY}"
+            }
+        },
+        "local-falcon": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@local-falcon/mcp"
+            ],
+            "env": {
+                "LOCAL_FALCON_API_KEY": "${LOCAL_FALCON_API_KEY}"
+            }
+        },
+        "dataforseo": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "dataforseo-mcp-server"
+            ],
+            "env": {
+                "DATAFORSEO_USERNAME": "${DATAFORSEO_USERNAME}",
+                "DATAFORSEO_PASSWORD": "${DATAFORSEO_PASSWORD}"
+            }
+        },
+        "schema-org": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "schema-org-mcp"
+            ]
+        },
+        "pagespeed": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "pagespeed-insights-mcp"
+            ],
+            "env": {
+                "GOOGLE_API_KEY": "${GOOGLE_API_KEY}"
+            }
+        },
+        "coolify": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@masonator/coolify-mcp"
+            ],
+            "env": {
+                "COOLIFY_ACCESS_TOKEN": "${COOLIFY_ACCESS_TOKEN}",
+                "COOLIFY_BASE_URL": "${COOLIFY_BASE_URL}"
+            }
+        },
+        "git-worktree": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "git-worktree-mcp"
+            ]
+        },
+        "git": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@cyanheads/git-mcp-server"
+            ]
+        }
+    }
+}

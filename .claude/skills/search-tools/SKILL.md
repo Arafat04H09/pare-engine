@@ -64,6 +64,16 @@ The output MUST contain:
 - Architecture notes for BUILD tools
 - Updated known-mcps reference data
 
+## Refining Vision & Product Plan
+
+VISION.md and PRODUCT_PLAN.md are **living documents**. If tool search reveals capabilities that change what should be built vs bought, update them:
+
+- If a found tool makes a PLANNED feature trivial, update PRODUCT_PLAN.md status to reflect the new approach
+- If a tool enables capabilities not in the vision, add them to the appropriate section
+- If tool pricing affects the cost architecture in VISION.md, update the cost table
+
+Add `<!-- Updated by search-tools — YYYY-MM-DD -->` to any changed sections.
+
 ## Rules
 - Never recommend replacing settled tool decisions from CLAUDE.md
 - Prefer MCP servers over npm packages over custom code

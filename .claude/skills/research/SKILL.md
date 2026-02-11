@@ -55,6 +55,20 @@ The output MUST contain:
 - "New Opportunities Discovered" section
 - "Unknowns Remaining" section
 
+## Refining Vision & Product Plan
+
+VISION.md and PRODUCT_PLAN.md are **living documents**. If research reveals market shifts, new competitor capabilities, or technical realities that contradict the vision, update them:
+
+- If market data shows the beachhead market should shift, update the Beachhead Market section
+- If competitor tools have closed gaps Pare was relying on as differentiators, update the Competitive Landscape section
+- If pricing research shows the revenue model needs adjustment, update it
+- If new API capabilities enable features previously marked DEFERRED, update PRODUCT_PLAN.md
+
+Add `<!-- Updated by research — YYYY-MM-DD -->` to any changed sections.
+
+**Stable** (don't change without user discussion): core thesis, three-layer architecture, unified principles.
+**Fluid** (update with evidence): market targets, pricing, feature priorities, competitive positioning, technical choices.
+
 ## Rules
 - Always cite sources with URLs
 - Distinguish between confirmed facts and speculation

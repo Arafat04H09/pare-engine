@@ -11,8 +11,7 @@ import Stripe from 'stripe';
 import { stripe, getStripeWebhookSecret } from '@/lib/stripe';
 import { Inngest } from 'inngest';
 import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import pg from 'pg';
+import { db } from '@/lib/db';
 import { clients, auditResults } from '@pare-engine/core';
 
 const inngest = new Inngest({ id: 'pare-web' });
@@ -23,15 +22,6 @@ class WebhookError extends Error {
     super(message);
     this.name = 'WebhookError';
   }
-}
-
-function getDb() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new WebhookError('DATABASE_URL is not set');
-  }
-  const pool = new pg.Pool({ connectionString: databaseUrl });
-  return drizzle(pool);
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -112,7 +102,7 @@ async function handleCheckoutCompleted(
     throw new WebhookError('No payment_intent on checkout session');
   }
 
-  const db = getDb();
+  // db is a lazy proxy from @/lib/db
 
   // Idempotency check: look for existing audit with this payment intent
   const existingAudits = await db

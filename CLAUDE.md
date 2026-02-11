@@ -254,23 +254,41 @@ pnpm --filter @pare-engine/core test    # Run core tests
 
 ## Development Pipeline
 
-Seven skills drive the development cycle (available in both `.claude/skills/` and `.agent/skills/`):
+Eight skills drive the development cycle (available in both `.claude/skills/` and `.agent/skills/`):
 
 ```
-/gap-analysis → /research → /synthesize → /search-tools → /decompose → /build → /confirm
+/gap-analysis → /research ──┐
+                             ├→ /synthesize → /decompose → /prepare → /build → /confirm
+              /search-tools ─┘                                           ↑         │
+                                                                         └─────────┘
+                                                                        (feedback loop)
 ```
 
-Pipeline artifacts live in `pipeline/` (numbered subdirectories 1-7). Each skill auto-reads the previous step's output. Pass arguments to override.
+**The pipeline is a DAG, not a chain.** `/research` and `/search-tools` can run in parallel (both feed into `/synthesize`). Multiple specs can `/build` in parallel within a wave. `/confirm` findings feed back into the next `/gap-analysis` cycle.
 
-- `/gap-analysis` — Scan repo vs VISION.md/PRODUCT_PLAN.md, identify gaps, prioritize by revenue impact
-- `/research` — Deep web research on questions from gap analysis
-- `/synthesize` — Merge gaps + research into phased build strategy (40hr budget cap)
-- `/search-tools` — Find MCPs/npm packages/APIs for needed capabilities
-- `/decompose` — Break strategy into atomic specs with strict file ownership
-- `/build [spec-path]` — Implement a single spec (requires explicit invocation)
-- `/confirm [spec-path]` — 6-level semantic verification of completed spec
+Pipeline artifacts live in `pipeline/` (numbered subdirectories). Each skill auto-reads the previous step's output. Pass arguments to override. Entry at any point is supported — e.g., `/build specs/B-hardening/B2.1.md` works without running earlier steps.
 
-Specs are written to `specs/` (not `pipeline/`). Entry at any point is supported — e.g., `/build specs/B-hardening/B2.1.md` works without running earlier steps.
+See `docs/PIPELINE_GUIDE.md` for the complete reference with examples, shortcuts, and decision trees.
+
+### Pipeline Skills
+
+| # | Skill | What It Does | Reads From | Writes To |
+|---|-------|-------------|------------|-----------|
+| 1 | `/gap-analysis` | Scan repo vs VISION.md/PRODUCT_PLAN.md, identify gaps by revenue impact | Codebase, VISION.md, PRODUCT_PLAN.md | `pipeline/1-gap-analysis/` |
+| 2 | `/research` | Deep web research on questions from gap analysis | `pipeline/1-gap-analysis/` | `pipeline/2-research/` |
+| 3 | `/synthesize` | Merge gaps + research into phased build strategy (40hr budget cap) | `pipeline/1-*`, `pipeline/2-*`, `pipeline/4-*` | `pipeline/3-synthesis/` |
+| 4 | `/search-tools` | Find MCPs/npm packages/APIs for needed capabilities | `pipeline/3-synthesis/` | `pipeline/4-search-tools/` |
+| 5 | `/decompose` | Break strategy into atomic specs with strict file ownership | `pipeline/3-*`, `pipeline/4-*` | `specs/`, `pipeline/5-decompose/` |
+| 6 | `/prepare` | Generate build briefs: classify work, select toolkit, identify patterns | `specs/`, contracts, codebase | `pipeline/5.5-prepare/` |
+| 7 | `/build [spec\|folder\|--wave\|--all]` | Implement specs (single or batch) with boundary enforcement | Spec + build brief + contracts | Code, `pipeline/6-build/` |
+| 8 | `/confirm [spec]` | 6-level semantic verification of completed spec | Spec + code + VISION.md | `pipeline/7-confirm/` |
+
+**Key flows:**
+- Steps 2 and 4 can run in parallel (both inform step 3)
+- Step 6 (`/prepare`) is optional but recommended — it makes `/build` significantly faster
+- Step 7 (`/build`) supports batch modes: `--wave N`, `--all`, folder path, or `--next N` — executes specs in dependency order, stops on failure
+- Step 8 (`/confirm`) findings feed into the next cycle's `/gap-analysis`
+- All pipeline skills may update VISION.md and PRODUCT_PLAN.md when evidence warrants it
 
 ### Utility Skills
 
@@ -283,8 +301,9 @@ Specs are written to `specs/` (not `pipeline/`). Entry at any point is supported
 - `/onboard [area]` — Context briefing for new agents (scoring, pipeline, web, tools, all)
 - `/perf [area]` — Profile bottlenecks in audit pipeline or specific modules
 - `/scaffold [contract-path]` — Generate typed implementation stubs from contract files
+- `/vision [focus-area]` — Interactive vision workshop: asks questions, extracts latent intent, steelmans, updates VISION.md + PRODUCT_PLAN.md
 
-### MCP Servers (14 configured)
+### MCP Servers (16 configured)
 
 | Server | Purpose | Env Vars Needed |
 |--------|---------|-----------------|
@@ -302,6 +321,17 @@ Specs are written to `specs/` (not `pipeline/`). Entry at any point is supported
 | schema-org | Schema.org type lookup & JSON-LD generation | — |
 | pagespeed | Google PageSpeed Insights analysis | `GOOGLE_API_KEY` |
 | coolify | Deployment management (35 ops) | `COOLIFY_ACCESS_TOKEN`, `COOLIFY_BASE_URL` |
+| git-worktree | Worktree creation, parallel workflow setup, cleanup | — |
+| git | Full git operations (27 tools) — merge, rebase, cherry-pick | — |
+
+### Build Infrastructure
+
+| Tool | Purpose | Configuration |
+|------|---------|---------------|
+| PreToolUse hook | Blocks writes to files outside spec's OWNED list | `.claude/hooks/validate-file-ownership.sh` — activated when `PARE_SPEC_FILE` env var is set |
+| @pnpm/merge-driver | Auto-resolves `pnpm-lock.yaml` conflicts during parallel merges | Installed globally, configured in `.git/info/attributes` |
+| Git worktrees | Filesystem isolation for parallel `/build` agents | `.wt/{spec-id}` directories, gitignored |
+| `core.longpaths` | Windows long path support for deep `node_modules` | Enabled globally via `git config --global core.longpaths true` |
 
 ## What NOT To Build (Deferred)
 

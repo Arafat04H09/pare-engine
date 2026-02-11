@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { loadWebConfig, type WebConfig } from '@pare-engine/core/config';
 
 const SESSION_COOKIE = 'pare_session';
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
@@ -45,10 +46,13 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     return redirectToLogin(request, true);
   }
 
-  const secret = process.env.SESSION_SECRET;
-  if (!secret || secret.length < 32) {
+  let config: WebConfig;
+  try {
+    config = loadWebConfig();
+  } catch {
     return redirectToLogin(request, true);
   }
+  const secret = config.sessionSecret;
 
   const payload = id + '.' + timestamp;
   const expectedSignature = await hmacSign(payload, secret);
@@ -80,9 +84,16 @@ function redirectToLogin(
   const response = NextResponse.redirect(loginUrl);
 
   if (clearCookie) {
+    let isSecure = false;
+    try {
+      const webConfig = loadWebConfig();
+      isSecure = webConfig.nodeEnv === 'production';
+    } catch {
+      // If config can't load, default to non-secure (safe for cookie clearing)
+    }
     response.cookies.set(SESSION_COOKIE, '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       sameSite: 'lax',
       maxAge: 0,
       path: '/',
@@ -92,6 +103,8 @@ function redirectToLogin(
   return response;
 }
 
+// Next.js middleware config — must be named `config`
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const config = {
   matcher: ['/admin/:path*'],
 };

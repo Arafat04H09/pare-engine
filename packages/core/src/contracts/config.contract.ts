@@ -41,6 +41,18 @@ export const ConfigSchema = z.object({
   // Infrastructure (optional until Round 4)
   inngestSigningKey: z.string().optional(),
   inngestEventKey: z.string().optional(),
+
+  // Webhook Secrets (Tier 3 — optional)
+  n8nWebhookSecret: z.string().optional(),
+  crawlerLogWebhookSecret: z.string().optional(),
+
+  // Web App (optional)
+  nextPublicUrl: z.string().url().optional(),
+  apifyApiKey: z.string().optional(),
+  reportFromEmail: z.string().email().optional(),
+
+  // Runtime
+  nodeEnv: z.enum(['development', 'production', 'test']).default('development'),
 });
 
 export type ValidatedConfig = z.infer<typeof ConfigSchema>;
@@ -57,3 +69,41 @@ export const MinimalAuditConfigSchema = ConfigSchema.pick({
 });
 
 export type MinimalAuditConfig = z.infer<typeof MinimalAuditConfigSchema>;
+
+/**
+ * Web app config — server components, API routes, middleware.
+ * Does NOT require AI provider API keys (those live in audit-runner).
+ */
+export const WebConfigSchema = ConfigSchema.pick({
+  databaseUrl: true,
+  adminEmail: true,
+  adminPasswordHash: true,
+  sessionSecret: true,
+  stripeSecretKey: true,
+  stripeWebhookSecret: true,
+  n8nWebhookSecret: true,
+  crawlerLogWebhookSecret: true,
+  nextPublicUrl: true,
+  apifyApiKey: true,
+  nodeEnv: true,
+});
+
+export type WebConfig = z.infer<typeof WebConfigSchema>;
+
+/**
+ * Pipeline config — audit-runner Inngest functions.
+ * Requires AI provider keys but NOT admin auth keys.
+ */
+export const PipelineConfigSchema = ConfigSchema.pick({
+  openaiApiKey: true,
+  googleGenerativeAiApiKey: true,
+  perplexityApiKey: true,
+  anthropicApiKey: true,
+  firecrawlApiKey: true,
+  databaseUrl: true,
+  googlePlacesApiKey: true,
+  resendApiKey: true,
+  reportFromEmail: true,
+});
+
+export type PipelineConfig = z.infer<typeof PipelineConfigSchema>;

@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { loadWebConfig } from '@pare-engine/core/config';
 import { createSession, validateSession, destroySession } from './session';
 
 export { createSession, validateSession, destroySession };
@@ -19,10 +20,13 @@ export async function authenticateAdmin(
   email: string,
   password: string,
 ): Promise<AuthResult> {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
-
-  if (!adminEmail || !adminPasswordHash) {
+  let adminEmail: string;
+  let adminPasswordHash: string;
+  try {
+    const config = loadWebConfig();
+    adminEmail = config.adminEmail;
+    adminPasswordHash = config.adminPasswordHash;
+  } catch {
     return { success: false, error: 'Admin credentials not configured' };
   }
 

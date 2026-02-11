@@ -3,8 +3,10 @@ import { NextResponse } from 'next/server';
 import { db } from '../../../../../../lib/db';
 import { auditResults } from '@pare-engine/core';
 import { sql } from 'drizzle-orm';
+import { validateSession } from '@/lib/session';
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }): Promise<NextResponse | Response> {
   try {
+    if (!(await validateSession())) { return NextResponse.json({ error: 'Unauthorized' }, { status: 401 }); }
     const { id } = await params;
     const rows = await db.select({ detailedResults: auditResults.detailedResults, reportPdfUrl: auditResults.reportPdfUrl }).from(auditResults).where(sql`${auditResults.id} = ${id}`).limit(1);
     const audit = rows[0]; if (!audit) { return NextResponse.json({ error: 'Not found' }, { status: 404 }); }

@@ -17,6 +17,7 @@
 // - Duration tracked in durationMs
 
 import { inngest } from './inngest.js';
+import { loadPipelineConfig } from '@pare-engine/core/config';
 import type {
   AuditRequest,
   AuditPipelineResult,
@@ -93,53 +94,6 @@ function rehydrateDates(obj: any): any {
     return result;
   }
   return obj;
-}
-
-// ---------------------------------------------------------------------------
-// Config Loader
-// ---------------------------------------------------------------------------
-
-/**
- * Load pipeline environment config.
- *
- * Uses a local loader because @pare-engine/core's loadConfig() requires
- * admin auth keys (adminEmail, adminPasswordHash, sessionSecret) that may
- * not be set in the audit-runner environment. Once deployment is unified
- * on a single server, this can be replaced with core's loadConfig().
- */
-interface PipelineConfig {
-  firecrawlApiKey: string;
-  openaiApiKey: string;
-  googleGenerativeAiApiKey: string;
-  perplexityApiKey: string;
-  anthropicApiKey: string;
-  googlePlacesApiKey?: string;
-  resendApiKey?: string;
-  databaseUrl: string;
-}
-
-function loadPipelineConfig(): PipelineConfig {
-  const get = (envKey: string, required: boolean = true): string => {
-    const value = process.env[envKey];
-    if (!value && required) {
-      throw new PipelineError(
-        `Missing required environment variable: ${envKey}`,
-        'CONFIG_MISSING',
-      );
-    }
-    return value ?? '';
-  };
-
-  return {
-    firecrawlApiKey: get('FIRECRAWL_API_KEY'),
-    openaiApiKey: get('OPENAI_API_KEY'),
-    googleGenerativeAiApiKey: get('GOOGLE_GENERATIVE_AI_API_KEY'),
-    perplexityApiKey: get('PERPLEXITY_API_KEY'),
-    anthropicApiKey: get('ANTHROPIC_API_KEY'),
-    googlePlacesApiKey: get('GOOGLE_PLACES_API_KEY', false) || undefined,
-    resendApiKey: get('RESEND_API_KEY', false) || undefined,
-    databaseUrl: get('DATABASE_URL'),
-  };
 }
 
 // ---------------------------------------------------------------------------
