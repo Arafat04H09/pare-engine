@@ -282,8 +282,9 @@ Specs are written to `specs/` (not `pipeline/`). Entry at any point is supported
 - `/changelog [since-ref]` — Generate changelog from git history grouped by category
 - `/onboard [area]` — Context briefing for new agents (scoring, pipeline, web, tools, all)
 - `/perf [area]` — Profile bottlenecks in audit pipeline or specific modules
+- `/scaffold [contract-path]` — Generate typed implementation stubs from contract files
 
-### MCP Servers (11 configured)
+### MCP Servers (14 configured)
 
 | Server | Purpose | Env Vars Needed |
 |--------|---------|-----------------|
@@ -298,6 +299,9 @@ Specs are written to `specs/` (not `pipeline/`). Entry at any point is supported
 | resend | Email testing (dev) | `RESEND_API_KEY` |
 | local-falcon | GBP ranking & local SEO scans | `LOCAL_FALCON_API_KEY` |
 | dataforseo | Backlinks, keywords, SERP data | `DATAFORSEO_USERNAME`, `DATAFORSEO_PASSWORD` |
+| schema-org | Schema.org type lookup & JSON-LD generation | — |
+| pagespeed | Google PageSpeed Insights analysis | `GOOGLE_API_KEY` |
+| coolify | Deployment management (35 ops) | `COOLIFY_ACCESS_TOKEN`, `COOLIFY_BASE_URL` |
 
 ## What NOT To Build (Deferred)
 

@@ -2,7 +2,7 @@
 
 This document tracks the MCP servers available in the Pare Engine agentic workflow.
 
-## Active MCP Servers (11)
+## Active MCP Servers (14)
 
 ### Core Development
 | Server | Purpose | Package |
@@ -11,6 +11,7 @@ This document tracks the MCP servers available in the Pare Engine agentic workfl
 | `drizzle` | Database schema management & queries | `drizzle-mcp` |
 | `github` | PR/issue management, repo operations | `@anthropic-ai/github-mcp-server` |
 | `playwright` | E2E testing & browser automation | `@anthropic-ai/playwright-mcp` |
+| `coolify` | Deployment management (35 ops) | `@masonator/coolify-mcp` |
 
 ### External Services
 | Server | Purpose | Package |
@@ -27,6 +28,12 @@ This document tracks the MCP servers available in the Pare Engine agentic workfl
 | `local-falcon` | GBP ranking data & local SEO scans | `@local-falcon/mcp` |
 | `dataforseo` | Backlinks, keywords, SERP analysis | `dataforseo-mcp-server` |
 
+### Domain-Specific
+| Server | Purpose | Package |
+|--------|---------|---------|
+| `schema-org` | Schema.org type lookup & JSON-LD generation | `schema-org-mcp` |
+| `pagespeed` | Google PageSpeed Insights analysis | `pagespeed-insights-mcp` |
+
 ## Skill → MCP Integration Map
 
 | Skill | MCP Servers Used |
@@ -42,8 +49,10 @@ This document tracks the MCP servers available in the Pare Engine agentic workfl
 | **test** | `playwright` (E2E) |
 | **security** | file tools |
 | **review** | file tools |
+| **scaffold** | `schema-org` (type lookup) |
 | **onboard** | `context7` (docs), file tools |
-| **perf** | file tools |
-| **run-audit** | `firecrawl` (crawl), `local-falcon` (GBP) |
-| **deploy** | — |
+| **perf** | `pagespeed` (performance data) |
+| **run-audit** | `firecrawl` (crawl), `local-falcon` (GBP), `pagespeed` |
+| **deploy** | `coolify` (deployment ops) |
 | **db-migrate** | `drizzle` |
+| **generate-schema** | `schema-org` (type + JSON-LD generation) |

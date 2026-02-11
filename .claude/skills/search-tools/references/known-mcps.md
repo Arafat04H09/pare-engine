@@ -2,7 +2,7 @@
 
 Last updated: 2026-02-10
 
-## Currently Installed (11)
+## Currently Installed (14)
 
 | MCP Server | Purpose | Status |
 |-----------|---------|--------|
@@ -17,6 +17,9 @@ Last updated: 2026-02-10
 | resend | Email testing | Active — dev only (prod uses API) |
 | local-falcon | GBP ranking & local SEO scans | Active — dev + audit |
 | dataforseo | Backlinks, keywords, SERP data | Active — dev + competitive intel |
+| schema-org | Schema.org type lookup & JSON-LD gen | Active — dev + schema analysis |
+| pagespeed | Google PageSpeed Insights | Active — dev + technical analysis |
+| coolify | Deployment management (35 ops) | Active — dev + deploy |
 
 ## Production API Wrappers (Not MCP)
 
