@@ -252,6 +252,26 @@ pnpm --filter @pare-engine/core build   # Build single package
 pnpm --filter @pare-engine/core test    # Run core tests
 ```
 
+## Development Pipeline
+
+Seven skills drive the development cycle (available in both `.claude/skills/` and `.agent/skills/`):
+
+```
+/gap-analysis → /research → /synthesize → /search-tools → /decompose → /build → /confirm
+```
+
+Pipeline artifacts live in `pipeline/` (numbered subdirectories 1-7). Each skill auto-reads the previous step's output. Pass arguments to override.
+
+- `/gap-analysis` — Scan repo vs VISION.md/PRODUCT_PLAN.md, identify gaps, prioritize by revenue impact
+- `/research` — Deep web research on questions from gap analysis
+- `/synthesize` — Merge gaps + research into phased build strategy (40hr budget cap)
+- `/search-tools` — Find MCPs/npm packages/APIs for needed capabilities
+- `/decompose` — Break strategy into atomic specs with strict file ownership
+- `/build [spec-path]` — Implement a single spec (requires explicit invocation)
+- `/confirm [spec-path]` — 6-level semantic verification of completed spec
+
+Specs are written to `specs/` (not `pipeline/`). Entry at any point is supported — e.g., `/build specs/B-hardening/B2.1.md` works without running earlier steps.
+
 ## What NOT To Build (Deferred)
 
 - Client-facing dashboard (use PDF reports + Loom walkthroughs until 10+ retainer clients)
