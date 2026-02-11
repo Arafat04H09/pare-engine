@@ -1,11 +1,13 @@
 # Pare Engine — Project Constitution
 
-> Pare Consulting is a GEO (Generative Engine Optimization) consulting agency.
-> This monorepo is the audit engine that powers the business.
+> Pare is an AI-native consulting operating system for Generative Engine Optimization (GEO).
+> This monorepo powers the entire consulting lifecycle — audit, implement, verify, retain.
 
 ## What This System Does
 
-Pare audits how AI engines (ChatGPT, Perplexity, Gemini) see local businesses, scores their AI readiness on a 0-100 scale across 5 pillars, generates branded PDF reports, and delivers actionable recommendations. The audit-to-implement-to-verify loop is the core value proposition — no competitor does this.
+Pare is a three-layer system (Tools, Intelligence, Workspace) that helps a solo GEO consultant manage mid-sized clients ($5M-$100M revenue). It audits how AI engines (ChatGPT, Perplexity, Gemini) perceive businesses, scores AI readiness on a 0-100 scale across 5 pillars, generates branded PDF reports, delivers implementation tooling (schema generation, content optimization, remediation plans), and provides ongoing monitoring with verified score improvements. The audit-to-implement-to-verify loop is the core value proposition — no competitor closes this loop.
+
+**Beachhead market:** B2B SaaS ($8M-$40M ARR), then PE-backed multi-location healthcare. See `VISION.md` for full market thesis.
 
 ## Repo State
 
