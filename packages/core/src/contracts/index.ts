@@ -8,3 +8,5 @@ export * from './analysis.contract.js';
 export * from './scoring.contract.js';
 export * from './report.contract.js';
 export * from './pipeline.contract.js';
+export * from './delta.contract.js';
+export * from './proposal.contract.js';

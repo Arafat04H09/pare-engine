@@ -18,7 +18,7 @@ import {
   buildCrawlerAnalyticsSummary,
   type CrawlerLogWebhookResponse,
   type ParsedBotVisit,
-} from '@pare-engine/core/tools/crawler-analytics.js';
+} from '@pare-engine/core/tools/crawler-analytics';
 
 // ---------------------------------------------------------------------------
 // Error class

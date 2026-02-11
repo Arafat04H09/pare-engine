@@ -38,3 +38,18 @@ export const CrawlOutputSchema = z.object({
 });
 
 export type CrawlOutput = z.infer<typeof CrawlOutputSchema>;
+
+// --- Media Assets (Task 3.2: Multimodal Audit) ---
+
+export const MediaAssetSchema = z.object({
+  url: z.string(),
+  type: z.enum(['youtube', 'vimeo', 'html5_video', 'image']),
+  pageUrl: z.string(),
+  title: z.string().optional(),
+  hasVideoObjectSchema: z.boolean().default(false),
+  hasTranscript: z.boolean().default(false),
+  embedCode: z.string().optional(),
+  videoId: z.string().optional(),
+});
+
+export type MediaAsset = z.infer<typeof MediaAssetSchema>;

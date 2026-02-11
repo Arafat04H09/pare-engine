@@ -104,6 +104,8 @@ export interface VerifyStepInput {
   auditRequest: AuditRequest;
   /** ID of the new audit result row (from the deliver step). */
   newAuditResultId: string;
+  /** Optional: The explicit baseline audit ID to verify against. */
+  parentAuditId?: string;
 }
 
 /** Output of the verify step. */
@@ -182,12 +184,41 @@ async function fetchPreviousAudit(
   clientId: string,
   excludeAuditId: string,
   databaseUrl: string,
+  explicitParentId?: string,
 ): Promise<PreviousAuditSnapshot | null> {
   const pool = new pg.Pool({ connectionString: databaseUrl });
 
   try {
     const db = drizzle(pool);
 
+    // Strategy 1: Explicit Parent
+    if (explicitParentId) {
+      const specific = await db
+        .select()
+        .from(auditResults)
+        .where(eq(auditResults.id, explicitParentId))
+        .limit(1);
+
+      if (specific.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const s = specific[0] as any;
+        return {
+          id: s.id,
+          overallScore: s.overallScore,
+          letterGrade: s.letterGrade,
+          aiVisibilityScore: s.aiVisibilityScore,
+          contentScore: s.contentScore,
+          schemaScore: s.schemaScore,
+          technicalScore: s.technicalScore,
+          gbpScore: s.gbpScore,
+          detailedResults: s.detailedResults,
+          auditDate: s.auditDate,
+        };
+      }
+      return null;
+    }
+
+    // Strategy 2: Automatic (Most Recent)
     const results = await db
       .select()
       .from(auditResults)
@@ -485,6 +516,38 @@ export async function getScoreTrend(
 }
 
 // ---------------------------------------------------------------------------
+// Audit Update (Link Parent & Delta)
+// ---------------------------------------------------------------------------
+
+async function updateAuditWithDelta(
+  auditId: string,
+  parentAuditId: string | null,
+  deltaResult: ScoreDeltaResult | FirstAuditDelta,
+  databaseUrl: string,
+): Promise<void> {
+  if (!parentAuditId) return; // No parent to link
+
+  const pool = new pg.Pool({ connectionString: databaseUrl });
+  try {
+    const db = drizzle(pool);
+    await db
+      .update(auditResults)
+      .set({
+        parentAuditId: parentAuditId,
+        deltaSummary: deltaResult,
+      })
+      .where(eq(auditResults.id, auditId));
+  } catch (err) {
+    console.error(
+      '[S20] Failed to update audit with delta summary:',
+      err instanceof Error ? err.message : String(err),
+    );
+  } finally {
+    await pool.end();
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Public API: Execute Verify Step
 // ---------------------------------------------------------------------------
 
@@ -513,7 +576,7 @@ export async function executeVerifyStep(
   input: VerifyStepInput,
   databaseUrl: string,
 ): Promise<VerifyStepOutput> {
-  const { clientId, currentScore, newAuditResultId } = input;
+  const { clientId, currentScore, newAuditResultId, parentAuditId } = input;
 
   try {
     // Step 1: Load score-delta module
@@ -522,7 +585,7 @@ export async function executeVerifyStep(
     // Step 2: Fetch previous audit (graceful degradation)
     let previousAudit: PreviousAuditSnapshot | null = null;
     try {
-      previousAudit = await fetchPreviousAudit(clientId, newAuditResultId, databaseUrl);
+      previousAudit = await fetchPreviousAudit(clientId, newAuditResultId, databaseUrl, parentAuditId);
     } catch (err) {
       console.warn(
         '[S20] Could not fetch previous audit, treating as first audit:',
@@ -547,7 +610,15 @@ export async function executeVerifyStep(
       databaseUrl,
     );
 
-    // Step 6: Return result
+    // Step 6: Update Audit Record with Delta
+    await updateAuditWithDelta(
+      newAuditResultId,
+      previousAudit?.id ?? null,
+      deltaResult,
+      databaseUrl
+    );
+
+    // Step 7: Return result
     return {
       delta: deltaResult,
       previousAuditId: previousAudit?.id ?? null,

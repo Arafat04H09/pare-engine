@@ -13,9 +13,25 @@
       "types": "./dist/contracts/index.d.ts",
       "import": "./dist/contracts/index.js"
     },
-    "./tools/crawler-analytics.js": {
-      "types": "./dist/tools/crawler-analytics.d.ts",
-      "import": "./dist/tools/crawler-analytics.js"
+    "./tools": {
+      "types": "./dist/tools/index.d.ts",
+      "import": "./dist/tools/index.js"
+    },
+    "./tools/*": {
+      "types": "./dist/tools/*.d.ts",
+      "import": "./dist/tools/*.js"
+    },
+    "./scoring": {
+      "types": "./dist/scoring/index.d.ts",
+      "import": "./dist/scoring/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js"
+    },
+    "./database": {
+      "types": "./dist/database/schema.d.ts",
+      "import": "./dist/database/schema.js"
     }
   },
   "scripts": {

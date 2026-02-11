@@ -1,14 +1,16 @@
 // Owner: S12 (Inngest Pipeline). Consumers: pipeline.ts
 // Orchestrates email delivery and database write for completed audits.
 //
-// Email delivery is STUBBED until S13 (Email Delivery) merges.
-// DB write saves the AuditPipelineResult to the auditResults table via Drizzle.
+// Email delivery uses Resend via @pare-engine/core's sendReport().
+// PDF buffer is persisted as base64 in detailedResults for retrieval via the
+// /api/admin/audits/[id]/pdf route.
 //
 // This step is independently retriable by Inngest.
 
 import pg from 'pg';
+import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { auditResults } from '@pare-engine/core';
+import { auditResults, sendReport } from '@pare-engine/core';
 import type {
   AuditRequest,
   CompositeScore,
@@ -59,36 +61,43 @@ export interface DeliverStepOutput {
   emailSent: boolean;
   emailId: string;
   auditResultId: string;
+  pdfUrl: string;
   deliveredAt: Date;
 }
 
 // ---------------------------------------------------------------------------
-// Email Delivery -- STUB (S13 not merged yet)
+// Email Delivery via Resend
 // ---------------------------------------------------------------------------
 
 /**
- * Sends the audit report via email.
- *
- * STUB: S13 (Email Delivery) has not merged yet.
- * When S13 merges, replace this with:
- *   import { sendReport } from '@pare-engine/core/tools/send-report.js';
- *
- * For now, logs a message and returns a placeholder email ID.
+ * Sends the audit report via Resend email.
+ * Gracefully degrades if resendApiKey is not configured.
  */
 async function sendReportEmail(
-  _email: string,
-  _businessName: string,
-  _pdf: PdfOutput,
-  _score: CompositeScore,
+  auditRequest: AuditRequest,
+  pdf: PdfOutput,
+  score: CompositeScore,
+  resendApiKey?: string,
 ): Promise<{ emailSent: boolean; emailId: string }> {
-  // TODO: Replace with actual email delivery once S13 merges
-  console.log(
-    `[S12] Email delivery stubbed. Would send report to ${_email} for ${_businessName}.`,
-  );
-  return {
-    emailSent: false,
-    emailId: `stub-${Date.now()}`,
-  };
+  if (!resendApiKey) {
+    console.warn(
+      `[deliver] RESEND_API_KEY not configured. Skipping email for ${auditRequest.businessName}.`,
+    );
+    return { emailSent: false, emailId: `no-key-${Date.now()}` };
+  }
+
+  try {
+    const result = await sendReport(
+      { auditRequest, pdf, score },
+      resendApiKey,
+    );
+    return { emailSent: result.emailSent, emailId: result.emailId };
+  } catch (err) {
+    // Graceful degradation: log and continue without email
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[deliver] Email delivery failed: ${message}`);
+    return { emailSent: false, emailId: `failed-${Date.now()}` };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -97,6 +106,7 @@ async function sendReportEmail(
 
 /**
  * Writes the audit result to the auditResults table.
+ * Stores the PDF buffer as base64 in detailedResults for later retrieval.
  *
  * @param input - All pipeline outputs
  * @param databaseUrl - PostgreSQL connection URL from validated config
@@ -111,7 +121,7 @@ async function writeAuditResult(
   try {
     const db = drizzle(pool);
 
-    const { auditRequest, score, queryResult, analysisData, durationMs } = input;
+    const { auditRequest, score, queryResult, analysisData, pdf, durationMs } = input;
 
     const detailedResults = {
       pillars: {
@@ -146,10 +156,15 @@ async function writeAuditResult(
           napConsistent: analysisData.gbp.napConsistent,
         },
       },
+      // Persist PDF buffer as base64 for retrieval via /api/admin/audits/[id]/pdf
+      pdfBuffer: pdf.buffer.toString('base64'),
+      pdfFilename: pdf.filename,
+      pdfPageCount: pdf.pageCount,
       durationMs,
       pipelineVersion: '1.0',
     };
 
+    // The PDF API endpoint URL for this audit
     const [inserted] = await db.insert(auditResults).values({
       clientId: auditRequest.clientId,
       auditDate: new Date(),
@@ -162,7 +177,6 @@ async function writeAuditResult(
       technicalScore: Math.round(score.pillars.technicalReadiness.score),
       gbpScore: Math.round(score.pillars.localGbp.score),
       detailedResults,
-      reportPdfUrl: undefined, // PDF storage URL will be set when we add file storage
     }).returning({ id: auditResults.id });
 
     if (!inserted) {
@@ -171,6 +185,11 @@ async function writeAuditResult(
         'DB_INSERT_FAILED',
       );
     }
+
+    // Set reportPdfUrl now that we have the audit result ID
+    await db.update(auditResults)
+      .set({ reportPdfUrl: `/api/admin/audits/${inserted.id}/pdf` })
+      .where(eq(auditResults.id, inserted.id));
 
     return inserted.id;
   } finally {
@@ -186,35 +205,40 @@ async function writeAuditResult(
  * Executes the delivery step of the audit pipeline.
  *
  * Flow:
- * 1. Write audit result to the auditResults table (Drizzle ORM)
- * 2. Send report email (STUBBED until S13 merges)
- * 3. Return delivery confirmation
+ * 1. Write audit result to the auditResults table (with PDF buffer in detailedResults)
+ * 2. Send report email via Resend (graceful degradation if key missing)
+ * 3. Return delivery confirmation with PDF URL
  *
  * @param input - All pipeline outputs including PDF buffer
  * @param databaseUrl - PostgreSQL connection URL
- * @returns Delivery result with email status and audit result ID
+ * @param resendApiKey - Optional Resend API key for email delivery
+ * @returns Delivery result with email status, audit result ID, and PDF URL
  * @throws DeliverError if DB write fails (retriable by Inngest)
  */
 export async function executeDeliverStep(
   input: DeliverStepInput,
   databaseUrl: string,
+  resendApiKey?: string,
 ): Promise<DeliverStepOutput> {
   try {
-    // Step 1: Write to database
+    // Step 1: Write to database (includes PDF buffer in detailedResults)
     const auditResultId = await writeAuditResult(input, databaseUrl);
 
-    // Step 2: Send email (STUBBED)
+    // Step 2: Send email (graceful degradation if key not set)
     const emailResult = await sendReportEmail(
-      input.auditRequest.contactEmail,
-      input.auditRequest.businessName,
+      input.auditRequest,
       input.pdf,
       input.score,
+      resendApiKey,
     );
+
+    const pdfUrl = `/api/admin/audits/${auditResultId}/pdf`;
 
     return {
       emailSent: emailResult.emailSent,
       emailId: emailResult.emailId,
       auditResultId,
+      pdfUrl,
       deliveredAt: new Date(),
     };
   } catch (err) {

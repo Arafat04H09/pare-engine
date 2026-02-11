@@ -14,7 +14,7 @@ import { z } from 'zod';
 import type {
   NotionSyncInput,
   NotionSyncOutput,
-} from '@pare-engine/core/tools/sync-notion.js';
+} from '@pare-engine/core/tools/sync-notion';
 
 /**
  * Tool definition: Sync client data to Notion.

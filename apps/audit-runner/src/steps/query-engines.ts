@@ -17,6 +17,7 @@ import {
   type MultiProviderResult,
   type Platform,
 } from '@pare-engine/core/contracts';
+import { selectPrompts } from '@pare-engine/core/tools/select-prompts';
 
 export class QueryError extends Error {
   readonly code: string;
@@ -40,14 +41,24 @@ function createProviders(config: QueryStepConfig) {
   return { openai, google, perplexity };
 }
 
-function buildQuerySystemPrompt(brand: string, domain: string): string {
-  return [
+function buildQuerySystemPrompt(brand: string, domain: string, competitors?: string[]): string {
+  const base = [
     'You are a helpful assistant answering questions about local businesses and services.',
     'Provide detailed, factual answers based on your knowledge and any available web sources.',
     'Include specific details like business names, locations, services, and any relevant',
     'reviews or ratings when available.',
     'The user is asking about "' + brand + '" (' + domain + ') or related businesses in their area.',
-  ].join(' ');
+  ];
+
+  // Task 2.2/2.4: Include competitor context so responses mention them for share-of-voice tracking
+  if (competitors && competitors.length > 0) {
+    base.push(
+      'When relevant, compare or mention these competitors: ' + competitors.join(', ') + '.',
+      'Include their relative strengths, weaknesses, or ranking when you have information.',
+    );
+  }
+
+  return base.join(' ');
 }
 
 function extractSources(sources: ReadonlyArray<{ sourceType?: string; url?: string; title?: string }>): {
@@ -113,7 +124,7 @@ async function queryOpenAI(input: QueryInput, config: QueryStepConfig): Promise<
     const result = await generateText({
       model: providers.openai.responses('gpt-4o'),
       tools: { web_search: providers.openai.tools.webSearch({ searchContextSize: 'medium' }) },
-      system: buildQuerySystemPrompt(input.brand, input.domain),
+      system: buildQuerySystemPrompt(input.brand, input.domain, input.competitors),
       prompt: input.query,
     });
     return buildSuccessResponse({
@@ -135,7 +146,7 @@ async function queryPerplexity(input: QueryInput, config: QueryStepConfig): Prom
   try {
     const result = await generateText({
       model: providers.perplexity('sonar'),
-      system: buildQuerySystemPrompt(input.brand, input.domain),
+      system: buildQuerySystemPrompt(input.brand, input.domain, input.competitors),
       prompt: input.query,
     });
     return buildSuccessResponse({
@@ -158,7 +169,7 @@ async function queryGemini(input: QueryInput, config: QueryStepConfig): Promise<
     const result = await generateText({
       model: providers.google('gemini-2.0-flash'),
       tools: { google_search: providers.google.tools.googleSearch({}) },
-      system: buildQuerySystemPrompt(input.brand, input.domain),
+      system: buildQuerySystemPrompt(input.brand, input.domain, input.competitors),
       prompt: input.query,
     });
     return buildSuccessResponse({
@@ -257,4 +268,80 @@ export async function executeQueryStep(input: MultiQueryInput, config: QueryStep
     );
   }
   return result;
+}
+
+// --- Vertical-aware query step (Task 1.4: Vertical Intelligence Engine) ---
+
+export interface VerticalQueryStepInput {
+  brand: string;
+  domain: string;
+  platforms?: Platform[];
+  competitors?: string[];
+  vertical: string;
+  city: string;
+}
+
+export interface VerticalQueryStepConfig extends QueryStepConfig {
+  databaseUrl: string;
+}
+
+/**
+ * Executes the query step with vertical-optimized prompt selection.
+ *
+ * 1. Calls selectPrompts() to get performance-ranked prompts from the DB.
+ * 2. Falls back to getDefaultQueries() if prompt selection fails.
+ * 3. Passes the selected prompts as queries to executeQueryStep().
+ * 4. Returns the standard MultiProviderResult.
+ *
+ * @param input - Brand, domain, vertical, city, and optional platforms/competitors.
+ * @param config - API keys for providers plus databaseUrl for prompt selection.
+ * @returns MultiProviderResult (same shape as executeQueryStep).
+ */
+export async function executeQueryStepWithVerticalPrompts(
+  input: VerticalQueryStepInput,
+  config: VerticalQueryStepConfig,
+): Promise<MultiProviderResult> {
+  let queries: string[];
+
+  try {
+    const selection = await selectPrompts({
+      vertical: input.vertical,
+      city: input.city,
+      count: 10,
+      databaseUrl: config.databaseUrl,
+    });
+
+    queries = selection.prompts.map((p) => p.text);
+  } catch {
+    // Fallback: use generic queries if prompt selection fails entirely
+    queries = getDefaultQueries(input.brand, input.city);
+  }
+
+  // If no queries were selected, use defaults
+  if (queries.length === 0) {
+    queries = getDefaultQueries(input.brand, input.city);
+  }
+
+  const multiQueryInput: MultiQueryInput = {
+    brand: input.brand,
+    domain: input.domain,
+    queries,
+    platforms: input.platforms ?? ['chatgpt', 'perplexity', 'gemini'],
+    competitors: input.competitors ?? [],
+  };
+
+  return executeQueryStep(multiQueryInput, config);
+}
+
+/**
+ * Returns a basic set of default queries when vertical prompt selection is unavailable.
+ */
+function getDefaultQueries(brand: string, city: string): string[] {
+  return [
+    'Best ' + brand + ' in ' + city,
+    'Recommend ' + brand + ' near ' + city,
+    'What are the top-rated options for ' + brand + ' in ' + city + '?',
+    brand + ' reviews ' + city,
+    'Is ' + brand + ' worth it in ' + city + '?',
+  ];
 }

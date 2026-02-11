@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<!--
+  Pare Engine — Delta / Verification Report
+  Owner: Task 1.1 (Verification Engine + Delta Tool)
+  Data injected via template literals at render time.
+  Shows before/after scores with per-pillar delta breakdown.
+  Uses brand guidelines: Navy #1B2A4A, Teal #00D4AA, Red #EF4444, Green #22C55E.
+  Font: Inter or system sans-serif.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verification Report — ${data.businessName}</title>
+  <style>
+    /* --- Brand Variables --- */
+    :root {
+      --color-primary: #1B2A4A;
+      --color-accent: #00D4AA;
+      --color-danger: #EF4444;
+      --color-success: #22C55E;
+      --color-warning: #FFB020;
+      --color-text: #334155;
+      --color-text-muted: #64748B;
+      --color-text-light: #94A3B8;
+      --color-bg: #FFFFFF;
+      --color-bg-light: #F8FAFC;
+      --color-border: #E2E8F0;
+      --font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-mono: 'Space Mono', 'Courier New', monospace;
+      --page-padding: 40px;
+    }
+
+    /* --- Reset & Base --- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      font-family: var(--font-body);
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--color-text);
+      background: var(--color-bg);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* --- Page Layout (A4 for Puppeteer) --- */
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      padding: var(--page-padding);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* --- Header --- */
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--color-accent);
+      margin-bottom: 24px;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-primary);
+      letter-spacing: -0.5px;
+    }
+
+    .logo-tagline {
+      font-size: 9px;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .header-meta {
+      text-align: right;
+      font-size: 9px;
+      color: var(--color-text-muted);
+    }
+
+    /* --- Section Headings --- */
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--color-primary);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--color-accent);
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-primary);
+      margin-bottom: 8px;
+    }
+
+    p { margin-bottom: 8px; line-height: 1.6; }
+
+    /* --- Overall Score Hero Section --- */
+    .delta-hero {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      padding: 28px 0;
+      margin-bottom: 24px;
+      background: var(--color-bg-light);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+    }
+
+    .delta-score-box {
+      text-align: center;
+      min-width: 110px;
+    }
+
+    .delta-score-box .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+    }
+
+    .delta-score-box .value {
+      font-family: var(--font-mono);
+      font-size: 48px;
+      font-weight: 700;
+      color: var(--color-primary);
+      line-height: 1;
+    }
+
+    .delta-score-box .out-of {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--color-text-muted);
+    }
+
+    .grade-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--color-bg);
+      margin-top: 8px;
+    }
+
+    .grade-A { background-color: var(--color-success); }
+    .grade-B { background-color: #84CC16; }
+    .grade-C { background-color: var(--color-warning); }
+    .grade-D { background-color: #F97316; }
+    .grade-F { background-color: var(--color-danger); }
+
+    .delta-arrow-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .delta-arrow {
+      font-size: 32px;
+      line-height: 1;
+    }
+
+    .delta-value {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .delta-positive { color: var(--color-success); }
+    .delta-negative { color: var(--color-danger); }
+    .delta-neutral { color: var(--color-text-light); }
+
+    /* --- Summary Stats Row --- */
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--color-bg-light);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-card .stat-value {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .stat-card .stat-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+
+    /* --- Pillar Comparison Table --- */
+    .pillar-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+    }
+
+    .pillar-table th {
+      background: var(--color-primary);
+      color: var(--color-bg);
+      padding: 10px 12px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .pillar-table th.col-center { text-align: center; }
+
+    .pillar-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 11px;
+    }
+
+    .pillar-table tr:nth-child(even) {
+      background: var(--color-bg-light);
+    }
+
+    .pillar-table .pillar-name {
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+
+    .pillar-table .score-cell {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .pillar-table .delta-cell {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .pillar-table .bar-cell {
+      padding-right: 16px;
+    }
+
+    .bar-container {
+      position: relative;
+      height: 20px;
+    }
+
+    .bar-before {
+      height: 8px;
+      background: var(--color-border);
+      border-radius: 4px;
+      position: absolute;
+      top: 0;
+    }
+
+    .bar-after {
+      height: 8px;
+      border-radius: 4px;
+      position: absolute;
+      top: 12px;
+    }
+
+    /* --- Callout Cards --- */
+    .callout-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .callout-card {
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .callout-improved {
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      border-left: 4px solid var(--color-success);
+    }
+
+    .callout-declined {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-left: 4px solid var(--color-danger);
+    }
+
+    .callout-empty {
+      background: var(--color-bg-light);
+      border: 1px solid var(--color-border);
+      border-left: 4px solid var(--color-text-light);
+    }
+
+    .callout-card .callout-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .callout-card .callout-pillar {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-primary);
+      margin-bottom: 2px;
+    }
+
+    .callout-card .callout-delta {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .callout-card .callout-detail {
+      font-size: 10px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    /* --- Grade Change Badge --- */
+    .grade-change {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 16px;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, #2D4A7A 100%);
+      border-radius: 10px;
+      color: var(--color-bg);
+      text-align: center;
+    }
+
+    .grade-change .gc-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-accent);
+    }
+
+    .grade-change .gc-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-bg);
+    }
+
+    .grade-change .gc-arrow {
+      font-size: 24px;
+      color: var(--color-accent);
+    }
+
+    /* --- First Audit Banner --- */
+    .first-audit-banner {
+      background: linear-gradient(135deg, var(--color-primary) 0%, #2D4A7A 100%);
+      color: var(--color-bg);
+      border-radius: 10px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .first-audit-banner h3 {
+      color: var(--color-bg);
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    .first-audit-banner p {
+      color: var(--color-accent);
+      font-size: 11px;
+      margin-bottom: 0;
+    }
+
+    /* --- Footer --- */
+    .report-footer {
+      position: absolute;
+      bottom: 20px;
+      left: var(--page-padding);
+      right: var(--page-padding);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--color-border);
+      padding-top: 8px;
+      font-size: 8px;
+      color: var(--color-text-light);
+    }
+
+    .report-footer .confidential { font-style: italic; }
+
+    @media print {
+      .page { margin: 0; padding: var(--page-padding); }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+
+    <!-- Header -->
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>${data.businessName}</div>
+        <div>${data.domain}</div>
+        <div>${data.verifiedAt}</div>
+      </div>
+    </div>
+
+    <h2>Verification Report</h2>
+
+    <p style="font-size: 11px; margin-bottom: 20px; color: var(--color-text-muted);">
+      This report compares your current AI Readiness Score with your previous audit
+      to measure the impact of implemented changes. Green indicates improvement; red
+      indicates decline.
+    </p>
+
+    <!-- First Audit Banner (shown only when isFirstAudit === true) -->
+    ${data.firstAuditBanner}
+
+    <!-- Overall Score Comparison -->
+    ${data.overallComparisonHtml}
+
+    <!-- Summary Stats: Pillars Improved / Declined / Unchanged -->
+    ${data.summaryStatsHtml}
+
+    <!-- Per-Pillar Breakdown Table -->
+    <h3 style="margin-bottom: 10px;">Pillar-by-Pillar Comparison</h3>
+    <table class="pillar-table">
+      <thead>
+        <tr>
+          <th>Pillar</th>
+          <th class="col-center">Before</th>
+          <th class="col-center">After</th>
+          <th class="col-center">Delta</th>
+          <th>Progress</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.pillarRowsHtml}
+      </tbody>
+    </table>
+
+    <!-- Biggest Improvement & Biggest Decline Callouts -->
+    <div class="callout-grid">
+      ${data.biggestImprovementHtml}
+      ${data.biggestDeclineHtml}
+    </div>
+
+    <!-- Grade Change Badge (shown only when grade changed) -->
+    ${data.gradeChangeHtml}
+
+    <!-- Narrative Summary -->
+    ${data.narrativeHtml}
+
+    <!-- Footer -->
+    <div class="report-footer">
+      <span class="confidential">Confidential — Prepared for ${data.businessName}</span>
+      <span>Verification Report</span>
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -100,9 +100,12 @@ function rehydrateDates(obj: any): any {
 // ---------------------------------------------------------------------------
 
 /**
- * Load environment config. We read process.env directly here because
- * @pare-engine/core does not yet export loadConfig() from its main subpath.
- * This matches the S1 config.ts pattern but avoids the import path issue.
+ * Load pipeline environment config.
+ *
+ * Uses a local loader because @pare-engine/core's loadConfig() requires
+ * admin auth keys (adminEmail, adminPasswordHash, sessionSecret) that may
+ * not be set in the audit-runner environment. Once deployment is unified
+ * on a single server, this can be replaced with core's loadConfig().
  */
 interface PipelineConfig {
   firecrawlApiKey: string;
@@ -111,6 +114,7 @@ interface PipelineConfig {
   perplexityApiKey: string;
   anthropicApiKey: string;
   googlePlacesApiKey?: string;
+  resendApiKey?: string;
   databaseUrl: string;
 }
 
@@ -133,6 +137,7 @@ function loadPipelineConfig(): PipelineConfig {
     perplexityApiKey: get('PERPLEXITY_API_KEY'),
     anthropicApiKey: get('ANTHROPIC_API_KEY'),
     googlePlacesApiKey: get('GOOGLE_PLACES_API_KEY', false) || undefined,
+    resendApiKey: get('RESEND_API_KEY', false) || undefined,
     databaseUrl: get('DATABASE_URL'),
   };
 }
@@ -349,6 +354,7 @@ export const auditPipeline = inngest.createFunction(
           durationMs,
         },
         config.databaseUrl,
+        config.resendApiKey,
       );
     });
 
@@ -361,7 +367,7 @@ export const auditPipeline = inngest.createFunction(
       auditType: auditRequest.auditType,
       overallScore: compositeScore.overallScore,
       letterGrade: compositeScore.letterGrade,
-      pdfUrl: undefined,
+      pdfUrl: deliverResult.pdfUrl,
       emailSent: deliverResult.emailSent,
       completedAt: new Date(),
       durationMs,

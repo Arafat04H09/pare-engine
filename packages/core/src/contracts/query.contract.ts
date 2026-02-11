@@ -64,3 +64,17 @@ export const MultiProviderResultSchema = z.object({
 });
 
 export type MultiProviderResult = z.infer<typeof MultiProviderResultSchema>;
+
+// --- Cohort Query (Task 2.2: Share of Voice) ---
+
+export const CohortQueryInputSchema = z.object({
+  brand: z.string().min(1),
+  domain: z.string().min(1),
+  queries: z.array(z.string().min(1)),
+  platforms: z.array(PlatformSchema).default([...ALL_PLATFORMS]),
+  competitors: z.array(z.string()).min(1, 'At least one competitor required for cohort query'),
+  vertical: z.string().optional(),
+  location: z.string().optional(),
+});
+
+export type CohortQueryInput = z.infer<typeof CohortQueryInputSchema>;

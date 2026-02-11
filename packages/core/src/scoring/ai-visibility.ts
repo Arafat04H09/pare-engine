@@ -366,3 +366,32 @@ export function scoreAIVisibility(
     providersAvailable: platformCoverage.available,
   };
 }
+
+// --- Task 3.3: Persona-Driven Scoring ---
+
+export interface PersonaVisibilityScore {
+  personaName: string;
+  score: AIVisibilityScore;
+}
+
+/**
+ * Score AI Visibility per persona.
+ * Runs the same scoring logic on persona-segmented mention data.
+ *
+ * @param personaMentions - Map of persona name to their ParsedMention[]
+ * @param providerResult - Shared MultiProviderResult
+ * @returns Array of per-persona scores
+ */
+export function scoreAIVisibilityByPersona(
+  personaMentions: Map<string, ParsedMention[]>,
+  providerResult: MultiProviderResult,
+): PersonaVisibilityScore[] {
+  const results: PersonaVisibilityScore[] = [];
+
+  for (const [personaName, mentions] of personaMentions) {
+    const score = scoreAIVisibility(mentions, providerResult);
+    results.push({ personaName, score });
+  }
+
+  return results;
+}

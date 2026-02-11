@@ -1,0 +1,55 @@
+<!-- Task 2.2: Share of Voice Matrix component for PDF reports -->
+<!-- Injected into audit-full.html via template rendering -->
+<!-- Data slots: {{SOV_TABLE_ROWS}}, {{SOV_PIE_SEGMENTS}}, {{HEAD_TO_HEAD_ROWS}} -->
+
+<section class="sov-section" style="page-break-before: always; padding: 40px;">
+  <h2 style="font-family: Inter, system-ui, sans-serif; color: #1B2A4A; font-size: 24px; margin-bottom: 8px;">
+    Share of Voice Analysis
+  </h2>
+  <p style="font-family: Inter, system-ui, sans-serif; color: #6B7280; font-size: 14px; margin-bottom: 24px;">
+    How your brand compares to competitors across AI engines
+  </p>
+
+  <!-- Share of Voice Table -->
+  <table style="width: 100%; border-collapse: collapse; font-family: Inter, system-ui, sans-serif; margin-bottom: 32px;">
+    <thead>
+      <tr style="border-bottom: 2px solid #1B2A4A;">
+        <th style="padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; color: #6B7280;">Entity</th>
+        <th style="padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; color: #6B7280;">Mentions</th>
+        <th style="padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; color: #6B7280;">Share of Voice</th>
+        <th style="padding: 12px 8px; text-align: center; font-size: 12px; text-transform: uppercase; color: #6B7280;">Avg Position</th>
+        <th style="padding: 12px 8px; text-align: center; font-size: 12px; text-transform: uppercase; color: #6B7280;">Sentiment</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{SOV_TABLE_ROWS}}
+    </tbody>
+  </table>
+
+  <!-- Pie Chart (inline SVG) -->
+  <div style="display: flex; justify-content: center; margin-bottom: 32px;">
+    <svg viewBox="0 0 200 200" width="200" height="200">
+      {{SOV_PIE_SEGMENTS}}
+    </svg>
+  </div>
+
+  <!-- Head-to-Head Battles -->
+  <h3 style="font-family: Inter, system-ui, sans-serif; color: #1B2A4A; font-size: 18px; margin-bottom: 16px;">
+    Head-to-Head Battles
+  </h3>
+  <table style="width: 100%; border-collapse: collapse; font-family: Inter, system-ui, sans-serif;">
+    <thead>
+      <tr style="border-bottom: 2px solid #E5E7EB;">
+        <th style="padding: 8px; text-align: left; font-size: 12px; text-transform: uppercase; color: #6B7280;">Query</th>
+        <th style="padding: 8px; text-align: center; font-size: 12px; text-transform: uppercase; color: #6B7280;">Engine</th>
+        <th style="padding: 8px; text-align: center; font-size: 12px; text-transform: uppercase; color: #6B7280;">Your Position</th>
+        <th style="padding: 8px; text-align: left; font-size: 12px; text-transform: uppercase; color: #6B7280;">Competitor</th>
+        <th style="padding: 8px; text-align: center; font-size: 12px; text-transform: uppercase; color: #6B7280;">Their Position</th>
+        <th style="padding: 8px; text-align: center; font-size: 12px; text-transform: uppercase; color: #6B7280;">Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{HEAD_TO_HEAD_ROWS}}
+    </tbody>
+  </table>
+</section>

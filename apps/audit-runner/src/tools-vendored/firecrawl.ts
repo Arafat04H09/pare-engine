@@ -14,7 +14,7 @@ import {
   buildCrawlOutput,
   normalizeDomain,
   CrawlError,
-} from '@pare-engine/core/tools/crawl-site.js';
+} from '@pare-engine/core/tools/crawl-site';
 import type { CrawlInput, CrawlOutput } from '@pare-engine/core/contracts';
 
 /**

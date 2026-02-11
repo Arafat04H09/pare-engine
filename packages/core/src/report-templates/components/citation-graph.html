@@ -1,0 +1,36 @@
+<!-- Task 3.4: Citation Graph component for PDF reports -->
+<!-- Injected into audit-full.html via template rendering -->
+<!-- Data slots: {{CITATION_GRAPH_SVG}}, {{TOP_SOURCES_ROWS}} -->
+
+<section class="citation-graph-section" style="page-break-before: always; padding: 40px;">
+  <h2 style="font-family: Inter, system-ui, sans-serif; color: #1B2A4A; font-size: 24px; margin-bottom: 8px;">
+    Citation Source Analysis
+  </h2>
+  <p style="font-family: Inter, system-ui, sans-serif; color: #6B7280; font-size: 14px; margin-bottom: 24px;">
+    Which sources AI engines cite when mentioning your brand
+  </p>
+
+  <!-- Citation Graph Visualization -->
+  <div style="display: flex; justify-content: center; margin-bottom: 32px;">
+    {{CITATION_GRAPH_SVG}}
+  </div>
+
+  <!-- Top Sources Table -->
+  <h3 style="font-family: Inter, system-ui, sans-serif; color: #1B2A4A; font-size: 18px; margin-bottom: 16px;">
+    Top Cited Sources
+  </h3>
+  <table style="width: 100%; border-collapse: collapse; font-family: Inter, system-ui, sans-serif;">
+    <thead>
+      <tr style="border-bottom: 2px solid #1B2A4A;">
+        <th style="padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; color: #6B7280;">Source</th>
+        <th style="padding: 12px 8px; text-align: left; font-size: 12px; text-transform: uppercase; color: #6B7280;">Type</th>
+        <th style="padding: 12px 8px; text-align: center; font-size: 12px; text-transform: uppercase; color: #6B7280;">Citations</th>
+        <th style="padding: 12px 8px; text-align: center; font-size: 12px; text-transform: uppercase; color: #6B7280;">Engines</th>
+        <th style="padding: 12px 8px; text-align: center; font-size: 12px; text-transform: uppercase; color: #6B7280;">Authority</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{TOP_SOURCES_ROWS}}
+    </tbody>
+  </table>
+</section>

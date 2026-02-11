@@ -11,7 +11,7 @@
 // Designed to be wrappable as an Inngest step or MCP tool.
 
 import type { CrawlOutput, CrawledPage } from '../contracts/crawl.contract.js';
-import type { SchemaAnalysisOutput, SchemaPageAnalysis } from '../contracts/analysis.contract.js';
+import type { SchemaAnalysisOutput, SchemaPageAnalysis, BotAccessResults, UcpValidation } from '../contracts/analysis.contract.js';
 
 // --- Custom Error ---
 
@@ -175,6 +175,10 @@ export interface AgenticCommerceResult {
     /** Total crawled pages analyzed. */
     totalPagesAnalyzed: number;
   };
+  /** UCP/ACP schema validation results (only for e-commerce sites). */
+  ucpValidation: UcpValidation | null;
+  /** Bot access results from robots.txt for product paths (only for e-commerce sites). */
+  botAccessResults: BotAccessResults | null;
   /** ISO timestamp of when this audit was performed. */
   auditedAt: Date;
 }
@@ -874,6 +878,191 @@ function countPagesWithPricing(pages: SchemaPageAnalysis[]): number {
   return count;
 }
 
+// --- UCP/ACP Schema Validation ---
+
+/**
+ * Validates Product/Offer structured data against UCP (Unified Commerce Protocol) requirements.
+ *
+ * UCP requires that Product schema includes price, priceCurrency, and availability
+ * in its Offer sub-objects, plus a MerchantReturnPolicy for full compliance.
+ *
+ * @param schemaAnalysis - Output from the schema analysis step.
+ * @returns UcpValidation result object.
+ */
+function validateUcpAcpSchemas(schemaAnalysis: SchemaAnalysisOutput): UcpValidation {
+  // Collect all raw JSON-LD from all pages
+  const allRawJsonLd: unknown[] = [];
+  for (const page of schemaAnalysis.pages) {
+    allRawJsonLd.push(...page.rawJsonLd);
+  }
+
+  // Extract Product and Offer objects
+  const productObjects = findJsonLdByType(allRawJsonLd, 'Product');
+  const offerObjects = [
+    ...findJsonLdByType(allRawJsonLd, 'Offer'),
+    ...findJsonLdByType(allRawJsonLd, 'AggregateOffer'),
+  ];
+
+  // Also extract offers nested inside Product objects
+  for (const product of productObjects) {
+    const obj = product as Record<string, unknown>;
+    if (obj['offers']) {
+      if (Array.isArray(obj['offers'])) {
+        offerObjects.push(...obj['offers']);
+      } else if (typeof obj['offers'] === 'object') {
+        offerObjects.push(obj['offers']);
+      }
+    }
+  }
+
+  // Check UCP required fields across all offers
+  const hasPrice = offerObjects.some((o) =>
+    hasProperty(o, 'price') || hasProperty(o, 'lowPrice') || hasProperty(o, 'highPrice'),
+  );
+  const hasCurrency = offerObjects.some((o) => hasProperty(o, 'priceCurrency'));
+  const hasAvailability = offerObjects.some((o) => hasProperty(o, 'availability'));
+
+  // Check for MerchantReturnPolicy (can be standalone or referenced from Offer)
+  const hasMerchantReturnPolicy =
+    findJsonLdByType(allRawJsonLd, 'MerchantReturnPolicy').length > 0
+    || offerObjects.some((o) => hasProperty(o, 'hasMerchantReturnPolicy'));
+
+  // UCP is valid only when all required fields are present
+  const isValid = hasPrice && hasCurrency && hasAvailability && hasMerchantReturnPolicy;
+
+  return {
+    hasPrice,
+    hasCurrency,
+    hasAvailability,
+    hasMerchantReturnPolicy,
+    isValid,
+  };
+}
+
+// --- Bot Access Check ---
+
+/**
+ * Parses robots.txt content from crawl data to determine whether specific AI shopping bots
+ * are allowed access to product paths (e.g., /product/*).
+ *
+ * Checks for: GPTBot, ClaudeBot, GoogleBot, Bingbot.
+ *
+ * The function looks for a page with a URL ending in /robots.txt in the crawl data.
+ * If no robots.txt is found, all bots are reported as 'unknown'.
+ *
+ * @param crawlData - Output from the Firecrawl crawl step.
+ * @returns BotAccessResults with per-bot access status.
+ */
+function checkBotAccess(crawlData: CrawlOutput): BotAccessResults {
+  // Find the robots.txt content from crawled pages or discovered URLs
+  let robotsContent: string | null = null;
+
+  for (const page of crawlData.pages) {
+    if (/\/robots\.txt$/i.test(page.url)) {
+      // Prefer raw text (markdown) since robots.txt is a plain text file
+      robotsContent = page.markdown || page.html;
+      break;
+    }
+  }
+
+  // If no robots.txt was crawled, return unknown for all bots
+  if (!robotsContent) {
+    return {
+      gptBot: 'unknown',
+      claudeBot: 'unknown',
+      googleBot: 'unknown',
+      bingBot: 'unknown',
+    };
+  }
+
+  // Parse robots.txt into sections by user-agent
+  const lines = robotsContent.split('\n').map((l) => l.trim());
+  const sections = new Map<string, string[]>();
+  let currentAgents: string[] = [];
+
+  for (const line of lines) {
+    if (line.startsWith('#') || line === '') {
+      if (line === '' && currentAgents.length > 0) currentAgents = [];
+      continue;
+    }
+    const lowerLine = line.toLowerCase();
+    if (lowerLine.startsWith('user-agent:')) {
+      const agent = line.substring('user-agent:'.length).trim().toLowerCase();
+      currentAgents.push(agent);
+      if (!sections.has(agent)) sections.set(agent, []);
+    } else if (currentAgents.length > 0) {
+      for (const agent of currentAgents) {
+        const existing = sections.get(agent) ?? [];
+        existing.push(line);
+        sections.set(agent, existing);
+      }
+    }
+  }
+
+  // The bots we care about for agentic commerce
+  const botMap: Array<{ key: keyof BotAccessResults; agent: string }> = [
+    { key: 'gptBot', agent: 'GPTBot' },
+    { key: 'claudeBot', agent: 'ClaudeBot' },
+    { key: 'googleBot', agent: 'Googlebot' },
+    { key: 'bingBot', agent: 'Bingbot' },
+  ];
+
+  const results: BotAccessResults = {
+    gptBot: 'unknown',
+    claudeBot: 'unknown',
+    googleBot: 'unknown',
+    bingBot: 'unknown',
+  };
+
+  for (const { key, agent } of botMap) {
+    const botRules = sections.get(agent.toLowerCase()) ?? [];
+    const wildcardRules = sections.get('*') ?? [];
+    const rulesToCheck = botRules.length > 0 ? botRules : wildcardRules;
+
+    if (rulesToCheck.length === 0) {
+      // No rules at all means we cannot determine access
+      results[key] = 'unknown';
+      continue;
+    }
+
+    // Check rules relevant to product paths
+    // We check both general access and product-specific paths
+    let generalAccess: 'allowed' | 'blocked' = 'allowed';
+    let productPathAccess: 'allowed' | 'blocked' | null = null;
+
+    for (const rule of rulesToCheck) {
+      const rl = rule.toLowerCase().trim();
+
+      if (rl.startsWith('disallow:')) {
+        const path = rl.substring('disallow:'.length).trim();
+        if (path === '/' || path === '/*') {
+          generalAccess = 'blocked';
+        }
+        // Check if product-related paths are specifically blocked
+        if (path === '/product' || path === '/products' || path.startsWith('/product/') || path.startsWith('/products/')) {
+          productPathAccess = 'blocked';
+        }
+      }
+
+      if (rl.startsWith('allow:')) {
+        const path = rl.substring('allow:'.length).trim();
+        if (path === '/' || path === '/*') {
+          generalAccess = 'allowed';
+        }
+        // Check if product-related paths are specifically allowed
+        if (path === '/product' || path === '/products' || path.startsWith('/product/') || path.startsWith('/products/')) {
+          productPathAccess = 'allowed';
+        }
+      }
+    }
+
+    // Product-specific rules override general rules
+    results[key] = productPathAccess ?? generalAccess;
+  }
+
+  return results;
+}
+
 // --- Main Public Function ---
 
 /**
@@ -939,6 +1128,15 @@ export async function auditAgenticCommerce(
     detectedPlatforms,
   );
 
+  // UCP/ACP validation and bot access checks (only for e-commerce sites)
+  const ucpValidation = ecommerceSignals.isEcommerce
+    ? validateUcpAcpSchemas(schemaAnalysis)
+    : null;
+
+  const botAccessResults = ecommerceSignals.isEcommerce
+    ? checkBotAccess(crawlData)
+    : null;
+
   // Compute stats
   const uniqueCommerceTypes = new Set(
     schemaAnalysis.allPresentTypes.filter((t) =>
@@ -975,6 +1173,8 @@ export async function auditAgenticCommerce(
     apiEndpoints,
     recommendations,
     stats,
+    ucpValidation,
+    botAccessResults,
     auditedAt: new Date(),
   };
 }

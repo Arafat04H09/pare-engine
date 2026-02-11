@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<!--
+  Pare Engine — Proposal / Statement of Work
+  Owner: Task 1.3 (Proposal Engine / Auto-SOW)
+  Data injected via template engine ({{placeholder}} interpolation)
+  All proposals are DRAFTS until operator review.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Readiness Proposal — {{clientName}}</title>
+  <style>{{styles}}</style>
+  <style>
+    /* Proposal-specific styles */
+    .proposal-hero {
+      text-align: center;
+      padding: 24px 0 16px;
+    }
+
+    .proposal-hero .score-ring {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 4px solid var(--color-accent);
+      margin-bottom: 8px;
+    }
+
+    .proposal-hero .score-ring .score-value {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .client-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .client-info-item {
+      background: var(--color-bg-light);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+
+    .client-info-item .label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-text-muted);
+      margin-bottom: 2px;
+      font-weight: 600;
+    }
+
+    .client-info-item .value {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+
+    .summary-box {
+      background: var(--color-bg-light);
+      border-left: 4px solid var(--color-accent);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      font-size: 11px;
+      line-height: 1.7;
+      color: var(--color-text);
+    }
+
+    .line-items-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
+    .line-items-table th {
+      background: var(--color-primary);
+      color: var(--color-bg);
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .line-items-table th:last-child {
+      text-align: right;
+    }
+
+    .line-items-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: top;
+    }
+
+    .line-items-table tr:nth-child(even) {
+      background: var(--color-bg-light);
+    }
+
+    .line-items-table .item-name {
+      font-weight: 600;
+      color: var(--color-primary);
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+
+    .line-items-table .item-desc {
+      color: var(--color-text-muted);
+      font-size: 9px;
+      line-height: 1.5;
+    }
+
+    .line-items-table .item-price {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--color-primary);
+      white-space: nowrap;
+    }
+
+    .subtotal-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 12px 12px;
+      background: var(--color-primary);
+      border-radius: 0 0 8px 8px;
+      margin-bottom: 20px;
+    }
+
+    .subtotal-row .subtotal-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-bg);
+      margin-right: 24px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .subtotal-row .subtotal-value {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-accent);
+    }
+
+    .timeline-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--color-bg-light);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 14px 20px;
+      margin-bottom: 20px;
+    }
+
+    .timeline-box .timeline-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .timeline-box .timeline-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--color-text-muted);
+      font-weight: 600;
+    }
+
+    .timeline-box .timeline-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .draft-banner {
+      background: #FEF3C7;
+      border: 1px solid #F59E0B;
+      border-radius: 6px;
+      padding: 10px 16px;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: #92400E;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .disclaimer {
+      text-align: center;
+      font-size: 9px;
+      color: var(--color-text-muted);
+      font-style: italic;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+    <!-- Header -->
+    <div class="report-header">
+      <div>
+        <div class="logo">pare</div>
+        <div class="logo-tagline">AI Visibility Consulting</div>
+      </div>
+      <div class="header-meta">
+        <div>AI Readiness Proposal</div>
+        <div>{{generatedDate}}</div>
+      </div>
+    </div>
+
+    <!-- Draft Banner -->
+    <div class="draft-banner">
+      Draft Proposal &mdash; For Internal Review Only
+    </div>
+
+    <!-- Client Info -->
+    <div class="client-info-grid">
+      <div class="client-info-item">
+        <div class="label">Client</div>
+        <div class="value">{{clientName}}</div>
+      </div>
+      <div class="client-info-item">
+        <div class="label">Domain</div>
+        <div class="value">{{domain}}</div>
+      </div>
+      <div class="client-info-item">
+        <div class="label">Audit Date</div>
+        <div class="value">{{auditDate}}</div>
+      </div>
+    </div>
+
+    <!-- Score Summary -->
+    <div class="proposal-hero">
+      <div class="score-ring">
+        <span class="score-value">{{overallScore}}</span>
+      </div>
+      <div>
+        <span class="grade-badge grade-{{letterGrade}}" style="width: 36px; height: 36px; font-size: 18px;">{{letterGrade}}</span>
+      </div>
+      <p class="text-muted text-small" style="margin-top: 6px;">Current AI Readiness Score</p>
+    </div>
+
+    <!-- Executive Summary -->
+    <h3 style="margin-bottom: 6px;">Executive Summary</h3>
+    <div class="summary-box">
+      {{executiveSummary}}
+    </div>
+
+    <!-- Line Items -->
+    <h3 style="margin-bottom: 8px;">Proposed Services</h3>
+    <table class="line-items-table">
+      <thead>
+        <tr>
+          <th style="width: 30px;">#</th>
+          <th>Service</th>
+          <th style="width: 80px;">Pillar</th>
+          <th style="width: 70px;">Effort</th>
+          <th style="width: 80px;">Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{lineItemRows}}
+      </tbody>
+    </table>
+
+    <!-- Subtotal -->
+    <div class="subtotal-row">
+      <span class="subtotal-label">Estimated Total</span>
+      <span class="subtotal-value">{{subtotalFormatted}}</span>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline-box">
+      <span class="timeline-icon">&#128197;</span>
+      <div>
+        <div class="timeline-label">Estimated Timeline</div>
+        <div class="timeline-value">{{estimatedTimeline}}</div>
+      </div>
+    </div>
+
+    <!-- Next Steps CTA -->
+    <div class="cta-box">
+      <h3>Next Steps</h3>
+      <p style="margin-bottom: 6px; color: rgba(255,255,255,0.8); font-size: 11px;">
+        Schedule a strategy call to review this proposal and discuss your AI visibility goals.
+      </p>
+      <p style="font-size: 12px; color: var(--color-accent); font-weight: 600;">
+        pareconsulting.com &mdash; hello@pareconsulting.com
+      </p>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+      This is a DRAFT proposal. Pricing and scope are subject to change after review.<br />
+      Valid for 30 days from {{generatedDate}}.
+    </div>
+
+    <!-- Footer -->
+    <div class="report-footer">
+      <span class="confidential">Confidential &mdash; Prepared for {{clientName}}</span>
+      <span>Pare Consulting</span>
+    </div>
+  </div>
+
+</body>
+</html>

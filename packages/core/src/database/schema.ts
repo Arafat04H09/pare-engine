@@ -42,6 +42,8 @@ export const auditResults = pgTable('audit_results', {
   technicalScore: integer('technical_score'),
   gbpScore: integer('gbp_score'),
   detailedResults: jsonb('detailed_results').notNull(),
+  parentAuditId: uuid('parent_audit_id'), // Self-reference for "After" audits
+  deltaSummary: jsonb('delta_summary'),   // Snapshot of improvement vs parent
   reportPdfUrl: text('report_pdf_url'),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => {
@@ -98,5 +100,65 @@ export const promptLibrary = pgTable('prompt_library', {
     queryType: text('query_type'),
     locationTemplate: boolean('location_template').default(true),
     isActive: boolean('is_active').default(true),
+    // Task 0.2: Performance tracking for vertical intelligence feedback loop
+    successCount: integer('success_count').default(0),
+    runCount: integer('run_count').default(0),
+    lastUsedAt: timestamp('last_used_at'),
+    performanceScore: numeric('performance_score', { precision: 5, scale: 4 }),
+    isExperimental: boolean('is_experimental').default(false),
     createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+    return {
+        verticalIdx: index('idx_prompt_library_vertical').on(table.vertical),
+    };
+});
+
+// Task 0.2: Remediation items — tracks fix review lifecycle
+export const remediationItems = pgTable('remediation_items', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    auditId: uuid('audit_id').references(() => auditResults.id, { onDelete: 'cascade' }),
+    type: text('type').notNull(), // 'jsonld', 'faq', 'llmstxt', 'content', 'technical'
+    status: text('status').default('draft'), // 'draft', 'approved', 'applied', 'rejected'
+    originalContent: text('original_content'),
+    currentContent: text('current_content'),
+    presentationMarkdown: text('presentation_markdown'),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+    return {
+        auditIdx: index('idx_remediation_items_audit').on(table.auditId),
+        statusIdx: index('idx_remediation_items_status').on(table.status),
+    };
+});
+
+// Task 0.2: Competitors — normalized entity storage (unique on domain)
+export const competitors = pgTable('competitors', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    domain: text('domain').notNull(),
+    businessName: text('business_name'),
+    vertical: text('vertical'),
+    createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+    return {
+        domainUniq: unique('uq_competitors_domain').on(table.domain),
+    };
+});
+
+// Task 0.2: Competitor snapshots — time-series competitive intelligence
+export const competitorSnapshots = pgTable('competitor_snapshots', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    competitorId: uuid('competitor_id').references(() => competitors.id, { onDelete: 'cascade' }),
+    auditId: uuid('audit_id').references(() => auditResults.id, { onDelete: 'cascade' }),
+    clientId: uuid('client_id').references(() => clients.id, { onDelete: 'cascade' }),
+    snapshotDate: timestamp('snapshot_date').notNull().defaultNow(),
+    rankPosition: integer('rank_position'),
+    shareOfVoice: numeric('share_of_voice', { precision: 5, scale: 4 }),
+    sourceEngine: text('source_engine'), // 'chatgpt', 'perplexity', 'gemini'
+    createdAt: timestamp('created_at').defaultNow(),
+}, (table) => {
+    return {
+        competitorIdx: index('idx_competitor_snapshots_competitor').on(table.competitorId),
+        clientIdx: index('idx_competitor_snapshots_client').on(table.clientId),
+        dateIdx: index('idx_competitor_snapshots_date').on(table.snapshotDate),
+    };
 });

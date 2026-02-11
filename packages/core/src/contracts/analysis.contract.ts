@@ -136,3 +136,103 @@ export const ParsedMentionSchema = z.object({
 });
 
 export type ParsedMention = z.infer<typeof ParsedMentionSchema>;
+
+// --- Adversarial Brand Audit (Task 3.1) ---
+
+export const AttackVectorSchema = z.enum(['karen', 'competitor', 'closure', 'price_anchor']);
+export type AttackVector = z.infer<typeof AttackVectorSchema>;
+
+export const AdversarialProbeResultSchema = z.object({
+  vector: AttackVectorSchema,
+  prompt: z.string(),
+  response: z.string(),
+  brandMentioned: z.boolean(),
+  sentiment: z.enum(['positive', 'neutral', 'negative', 'not_mentioned']),
+  resilient: z.boolean(),
+  confidenceScore: z.number().min(0).max(1),
+  reasoning: z.string(),
+});
+
+export type AdversarialProbeResult = z.infer<typeof AdversarialProbeResultSchema>;
+
+export const HallucinationSchema = z.object({
+  type: z.enum(['temporal', 'price', 'location', 'broken_link', 'attribution']),
+  claim: z.string(),
+  source: z.string(),
+  severity: z.enum(['high', 'medium', 'low']),
+  explanation: z.string(),
+});
+
+export type Hallucination = z.infer<typeof HallucinationSchema>;
+
+export const AdversarialAuditOutputSchema = z.object({
+  probes: z.array(AdversarialProbeResultSchema),
+  hallucinations: z.array(HallucinationSchema),
+  brandResilienceScore: z.number().min(0).max(100),
+  vectorBreakdown: z.record(AttackVectorSchema, z.object({
+    tested: z.number(),
+    resilient: z.number(),
+    score: z.number().min(0).max(100),
+  })),
+  summary: z.string(),
+  analyzedAt: z.date(),
+});
+
+export type AdversarialAuditOutput = z.infer<typeof AdversarialAuditOutputSchema>;
+
+// --- Agentic Commerce Readiness (Task 4.2) ---
+
+export const CommerceChecklistItemSchema = z.object({
+  name: z.string(),
+  present: z.boolean(),
+  importance: z.enum(['critical', 'important', 'nice-to-have']),
+  details: z.string().optional(),
+});
+
+export type CommerceChecklistItem = z.infer<typeof CommerceChecklistItemSchema>;
+
+const BotAccessStatusSchema = z.enum(['allowed', 'blocked', 'unknown']);
+
+export const BotAccessResultsSchema = z.object({
+  gptBot: BotAccessStatusSchema,
+  claudeBot: BotAccessStatusSchema,
+  googleBot: BotAccessStatusSchema,
+  bingBot: BotAccessStatusSchema,
+});
+
+export type BotAccessResults = z.infer<typeof BotAccessResultsSchema>;
+
+export const UcpValidationSchema = z.object({
+  hasPrice: z.boolean(),
+  hasCurrency: z.boolean(),
+  hasAvailability: z.boolean(),
+  hasMerchantReturnPolicy: z.boolean(),
+  isValid: z.boolean(),
+});
+
+export type UcpValidation = z.infer<typeof UcpValidationSchema>;
+
+export const AgenticCommerceOutputSchema = z.object({
+  isEcommerce: z.boolean(),
+  confidence: z.enum(['high', 'medium', 'low']),
+  score: z.number().int().min(0).max(100),
+  checklist: z.array(CommerceChecklistItemSchema),
+  detectedPlatform: z.string().nullable(),
+  detectedSchemaTypes: z.array(z.string()),
+  apiEndpoints: z.array(z.object({
+    url: z.string(),
+    type: z.string(),
+    description: z.string(),
+  })),
+  agentProtocols: z.array(z.object({
+    protocol: z.string(),
+    detected: z.boolean(),
+    url: z.string().optional(),
+  })),
+  recommendations: z.array(z.string()),
+  botAccessResults: BotAccessResultsSchema.optional(),
+  ucpValidation: UcpValidationSchema.optional(),
+  analyzedAt: z.date(),
+});
+
+export type AgenticCommerceOutput = z.infer<typeof AgenticCommerceOutputSchema>;
