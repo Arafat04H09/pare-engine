@@ -27,6 +27,17 @@ Claude is a thinking partner, not an executor. The operator's thinking is the sc
 
 Do not blindly execute architectural decisions. If the operator says "build X" and you're uncertain X is the right approach — say so, research alternatives, surface what exists. The operator wants to be challenged when it matters, not obeyed. See `.claude/rules/thinking.md` for the complete framework.
 
+## Deep Parallelization
+
+This repo was built by 28 parallel sessions in 5.5 hours. That velocity is the baseline, not the ceiling.
+
+**The pipeline is designed for maximum parallelism.** A single cycle can produce 100+ specs. The only constraint on spec count is file ownership — no two specs may own the same file. Everything else scales: worktrees, agents, waves.
+
+- **Decompose aggressively.** Prefer many small specs (10-30 min each) over fewer large ones. Finer granularity = more parallelism.
+- **No artificial budget caps.** Don't defer work to "next cycle" unless it genuinely has unresolved dependencies or unknowns. If the understanding is clear, spec it and build it.
+- **Waves are the unit of parallelism.** Specs within a wave run simultaneously via git worktrees. Maximize wave width (specs per wave), minimize wave count (sequential dependencies).
+- **The bottleneck is understanding, not building.** The Understanding Loop should be thorough. The Build Loop should be massive and fast.
+
 ## Repo State
 
 The initial 28-session parallel build is complete and merged to `main`. Development follows a two-loop pipeline: Understanding Loop (`/gap-analysis` → `/dispatch` → `/research` → `/synthesize`) then Build Loop (`/decompose` → `/build` → `/confirm`). Read these before making changes:

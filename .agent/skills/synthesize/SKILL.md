@@ -104,12 +104,14 @@ Assign each item to a phase:
 
 Create a mermaid diagram showing which items block others. Identify the critical path (longest dependency chain).
 
-### 7. Budget Check
+### 7. Scale Check
 
-Total estimated specs must be reasonable for one cycle. If over budget:
-- Move lowest-priority items to "Deferred" with reasoning
-- Prefer fewer items done well over many items done partially
-- Complex items count as 2-3x a standard spec for budgeting
+Maximize the number of specs this cycle can produce. The pipeline is designed for deep parallelization — 100+ specs per cycle is expected, not excessive.
+
+- **Do NOT artificially limit scope.** If the understanding is clear and dependencies are resolved, include it. Don't defer work that's ready to build.
+- **Only defer items that have genuine blockers:** unresolved dependencies, unknowns that need another research cycle, or Complex-domain items that need probes first.
+- **Prefer many small items over fewer large ones.** Finer granularity = more parallelism in `/decompose` and `/build`.
+- Complex items count as 2-3x a standard spec for phasing (they may need sequential treatment), but they don't reduce the total spec count.
 
 ## Output
 
@@ -136,7 +138,7 @@ The output MUST contain:
 
 7. **Deferred Items** with reasoning and revisit criteria
 
-8. **Spec Budget** — Total specs estimated vs budget
+8. **Spec Estimate** — Total specs estimated, wave structure, parallelism potential
 
 9. **Vision/Plan Updates** — Specific changes to make to VISION.md or PRODUCT_PLAN.md
 
@@ -165,7 +167,7 @@ Add `<!-- Updated by synthesize — YYYY-MM-DD -->` to any changed sections.
 ## Rules
 - **Domain model update before build strategy.** Understanding what changed comes before planning what to build.
 - **Never skip the "what we were wrong about" section.** If research disconfirmed nothing, either the research was confirmation-biased or there was nothing risky to investigate.
-- **Never exceed cycle budget** — defer excess to next cycle
+- **Maximize spec count per cycle** — only defer items with genuine blockers, not to stay under an arbitrary budget
 - **Prefer extending existing contracts over creating new ones**
 - **Prefer tools in the MCP ecosystem over custom code**
 - **Phase 0 items must be sequential; Phase 1+ can be parallelized**

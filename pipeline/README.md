@@ -12,7 +12,7 @@ BUILD LOOP (execute with confidence):
 /synthesize → /decompose → /prepare → /build → /confirm → feedback to next /gap-analysis
 ```
 
-The Understanding Loop produces domain knowledge and a build strategy. The Build Loop executes that strategy. The loops feed back into each other — `/confirm` findings flow to the next `/gap-analysis`, and durable knowledge accumulates in `knowledge/`.
+The Understanding Loop produces domain knowledge and a build strategy. The Build Loop executes that strategy at scale — **100+ specs per cycle via deep parallelization** (git worktrees, non-overlapping file ownership, wide waves). The loops feed back into each other — `/confirm` findings flow to the next `/gap-analysis`, and durable knowledge accumulates in `knowledge/`.
 
 ## Directory Structure
 

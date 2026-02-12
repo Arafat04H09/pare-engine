@@ -94,6 +94,34 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 
 ---
 
+## Deep Parallelization
+
+The pipeline is designed for **maximum parallelism**, not incremental iteration. A single cycle can and should produce 100+ specs.
+
+**Design principles:**
+
+1. **The bottleneck is understanding, not building.** The Understanding Loop should be thorough and unhurried. The Build Loop should be massive and fast.
+
+2. **Decompose aggressively.** Each spec should be 10-30 minutes of agent work, not hours. If a strategy item touches 5 independent files, that's 5 specs, not 1.
+
+3. **Maximize wave width.** Specs within a wave run simultaneously via git worktrees. The wider the wave (more specs in parallel), the faster the cycle. File ownership is the only constraint — no two specs can own the same file.
+
+4. **No artificial budget caps.** Don't defer work to "next cycle" unless it has genuine blockers (unresolved dependencies, unknowns requiring more research, Complex-domain items needing probes). If the understanding is clear, spec it and build it now.
+
+5. **Scale is the default.** This repo was built by 28 parallel sessions in 5.5 hours. That velocity is the baseline. A cycle that produces 20 specs is underperforming — look for decomposition opportunities.
+
+**What limits spec count:**
+- File ownership conflicts (the only hard constraint)
+- Genuinely unresolved dependencies between items
+- Complex-domain items where the right approach isn't known yet (these get probes, not full specs)
+
+**What does NOT limit spec count:**
+- "Budget" or "hours per cycle" — these are meaningless at agent velocity
+- "Too many specs to manage" — the manifest and index handle this
+- "We should be conservative" — conservatism in the Build Loop wastes the Understanding Loop's investment
+
+---
+
 ## The 10 Stages
 
 ### Stage 1: Gap Analysis (`/gap-analysis`)
@@ -248,14 +276,15 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 
 ### Stage 5: Decompose (`/decompose`)
 
-**Question answered:** "How do we divide the work?"
+**Question answered:** "How do we divide the work for maximum parallelism?"
 
 **What it does:**
-- Breaks the strategy into atomic specs (2-8 hours each)
+- Breaks the strategy into atomic specs (10-30 minutes each — as fine-grained as possible)
 - Assigns file ownership (zero overlap between specs)
 - Marks dependencies and groups into execution waves
 - Writes spec files to `specs/{category}/`
 - Updates `specs/index.md`
+- **Targets 100+ specs per cycle.** More specs = wider waves = more parallelism.
 
 **Input:** `pipeline/3-synthesis/`, `pipeline/4-search-tools/`
 **Output:** `specs/`, `pipeline/5-decompose/manifest-YYYY-MM-DD.md`
@@ -566,10 +595,15 @@ Main worktree (orchestrator)
 ├── .wt/B1.1/    ← Agent 1 (isolated checkout)
 ├── .wt/B1.2/    ← Agent 2 (isolated checkout)
 ├── .wt/B2.1/    ← Agent 3 (isolated checkout)
-└── .wt/B2.2/    ← Agent 4 (isolated checkout)
+├── .wt/B2.2/    ← Agent 4 (isolated checkout)
+├── .wt/C1.1/    ← Agent 5
+├── ...          ← As many as the wave requires
+└── .wt/C4.3/    ← Agent N
 ```
 
 Each sub-agent gets its own full filesystem checkout. They can `pnpm build`, `pnpm test`, and write files without interfering with each other. After all agents finish, the orchestrator merges their branches back and runs a final integration check.
+
+**Target scale:** A single wave can run 20-40+ specs simultaneously. The only constraint is file ownership — no two specs in the same wave can own the same file. With aggressive decomposition (10-30 min per spec), a wave of 30 specs finishes in ~30 minutes wall clock.
 
 **Why this works:** `/decompose` guarantees zero file overlap between specs in the same wave. Non-overlapping ownership means conflict-free merges.
 

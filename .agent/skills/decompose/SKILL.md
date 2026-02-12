@@ -30,11 +30,12 @@ If a specific strategy file or focus was provided by the user, use that instead.
    - **D**: Testing and verification
    - **E-Z**: Additional categories as needed
 
-2. **Split into Atomic Specs**: Each spec must be:
-   - Completable in 2-8 hours by a single agent
+2. **Split into Atomic Specs**: Decompose aggressively for maximum parallelism. Each spec must be:
+   - Completable in **10-30 minutes** by a single agent (the observed velocity — a spec is not a "project")
    - Self-contained (all context in the spec file)
    - Verifiable (has acceptance criteria and verification command)
-   - If a strategy item is >8 hours, split into sub-specs (e.g., B2.1, B2.2)
+   - If a strategy item has multiple independent files, split it — each file or tight file-group gets its own spec
+   - 100+ specs per cycle is expected. Finer granularity = wider waves = more parallelism
 
 3. **Assign File Ownership**: For each spec, define:
    - **Files OWNED**: Files this spec may create or modify (exclusive — no overlap between specs)
@@ -68,7 +69,7 @@ VISION.md and PRODUCT_PLAN.md are **living documents**. If decomposition reveals
 
 - If splitting work reveals that a feature is much larger than estimated, update PRODUCT_PLAN.md to reflect realistic phasing
 - If file ownership conflicts expose architectural issues, flag them and update VISION.md's architecture section if needed
-- If the spec count exceeds the budget, update PRODUCT_PLAN.md to defer lower-priority items with reasoning
+- If file ownership conflicts prevent further decomposition, consolidate conflicting specs with reasoning
 
 Add `<!-- Updated by decompose — YYYY-MM-DD -->` to any changed sections.
 
