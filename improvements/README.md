@@ -25,22 +25,17 @@ Pare is three interlocking machines: a lead generation machine (batch audits -> 
 The market is real ($886M->$7.3B at 34% CAGR). The implementation gap is real (200+ monitoring tools, zero implementation tools). Solo operator economics are exceptional ($90/month costs vs $17.5K/month revenue at 5 retainers + 2 sprints). Delivery gets cheaper over time while price stays constant. The moat thickens with every client served.
 
 ### Where Vision Exceeds Reality
-> **Note:** These completion estimates are from the initial analysis (Feb 2026) and may be outdated. Run `/gap-analysis` for current state.
+> **Note:** These assessments are from the initial analysis (Feb 2026). Run `/gap-analysis` for current state — the codebase has evolved significantly since this was written.
 
 The system has 5 gears:
 - **Prospecting:** Minimal (batch auditing, outreach tooling not built)
 - **Sales/Audit:** Core pipeline functional (crawl → query → analyze → score → report → deliver)
 - **Sprint Delivery:** Tools exist (JSON-LD, FAQ, llms.txt, content optimizer), workflow partially wired
-- **Retention/Monitoring:** Schema and templates exist, scheduled execution not wired
-- **Intelligence:** Prompt library seeded, performance tracking schema exists, feedback loop not wired
+- **Retention/Monitoring:** Schema and templates exist, scheduled execution partially wired
+- **Intelligence:** Prompt library seeded (5 verticals), performance tracking exists, feedback loop not wired
 
 ### The Critical Path
-28 hours of work stands between the current codebase and first revenue:
-1. Delete scaffold packages (fix build)
-2. Wire email delivery (replace stub)
-3. Store PDFs (persist reports)
-4. Build intake form + Stripe integration
-5. Run first real audit end-to-end
+> **Note:** Scaffold packages have been removed and the build is clean. See `PRODUCT_PLAN.md` for current feature status (SHIPPED/WIRED/PARTIAL/PLANNED).
 
 ### The Biggest Risk
 If the first 3 case studies show no measurable AI visibility improvement, the entire sales thesis collapses. Everything depends on the product actually working. The scoring system's non-deterministic component (Pillar 1: AI Visibility, 30 points) may not respond to the fixes that Pillars 2-5 measure.

@@ -6,12 +6,15 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "conductor": "tsx scripts/conductor.ts"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
+    "chokidar": "^4.0.3",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
+    "tsx": "^4.19.3",
     "turbo": "latest",
     "typescript": "^5.3.3",
     "vitest": "^4.0.18"

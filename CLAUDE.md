@@ -274,6 +274,20 @@ pnpm --filter @pare-engine/core build   # Build single package
 pnpm --filter @pare-engine/core test    # Run core tests
 ```
 
+### Conductor (Pipeline Orchestrator)
+
+```bash
+pnpm conductor                      # Auto-detect state, run forward
+pnpm conductor start                # Archive previous cycle, run full pipeline
+pnpm conductor watch                # Reactive: auto-run stages when files appear
+pnpm conductor status               # Show pipeline state, exit
+pnpm conductor --from=synthesize    # Resume from specific stage
+pnpm conductor --understanding      # Understanding loop only (gap→synthesize)
+pnpm conductor --build              # Build loop only (decompose→confirm)
+pnpm conductor --dry-run            # Show plan without executing
+pnpm conductor --gate-all           # Prompt before each stage
+```
+
 ## Development Pipeline
 
 The pipeline has two loops — understand before building:
@@ -290,6 +304,8 @@ BUILD LOOP (execute with confidence):
 
 The Understanding Loop produces domain knowledge and a build strategy. The Build Loop executes it. Durable knowledge accumulates in `knowledge/` across cycles. Pipeline artifacts in `pipeline/` are ephemeral (archived each cycle).
 
+**The Conductor** (`pnpm conductor`) automates stage transitions. It scans `pipeline/` for completed outputs, spawns agents for ready stages, handles research fan-out (N parallel threads + search-tools), validates non-empty outputs, and archives previous cycles on `start`. Fully autonomous by default — no gates unless `--gate-all`. Routes thinking stages (gap-analysis, dispatch, synthesize, decompose) to Claude Opus, doing stages (research, prepare, build) to Gemini, and confirm to Claude Sonnet.
+
 See `docs/PIPELINE_GUIDE.md` for the complete reference with examples, shortcuts, and decision trees.
 
 ### Pipeline Skills
@@ -300,11 +316,11 @@ See `docs/PIPELINE_GUIDE.md` for the complete reference with examples, shortcuts
 | 1.5 | `/dispatch` | Triage research questions into parallel threads with anti-scope | `pipeline/1-gap-analysis/`, knowledge/ | `pipeline/1.5-dispatch/` |
 | 2 | `/research` | Hypothesis-driven investigation, disconfirmation priority, durable knowledge output | `pipeline/1.5-dispatch/` or `pipeline/1-gap-analysis/`, knowledge/ | `pipeline/2-research/`, knowledge/ |
 | 3 | `/synthesize` | Update domain model (what changed?), then create phased build strategy | `pipeline/1-*`, `pipeline/2-*`, `pipeline/4-*`, knowledge/ | `pipeline/3-synthesis/`, knowledge/ |
-| 4 | `/search-tools` | Find MCPs/npm packages/APIs for needed capabilities | `pipeline/3-synthesis/` or `pipeline/1-gap-analysis/` | `pipeline/4-search-tools/` |
+| 4 | `/search-tools` | Find MCPs/npm packages/APIs for needed capabilities | `pipeline/1.5-dispatch/` (runs parallel with research) | `pipeline/4-search-tools/` |
 | 5 | `/decompose` | Break strategy into atomic specs with strict file ownership | `pipeline/3-*`, `pipeline/4-*` | `specs/`, `pipeline/5-decompose/` |
-| 6 | `/prepare` | Generate build briefs: classify work, select toolkit, identify patterns | `specs/`, contracts, codebase | `pipeline/5.5-prepare/` |
-| 7 | `/build [spec\|folder\|--wave\|--all]` | Implement specs (single or batch) with boundary enforcement | Spec + build brief + contracts | Code, `pipeline/6-build/` |
-| 8 | `/confirm [spec]` | 6-level semantic verification of completed spec | Spec + code + VISION.md | `pipeline/7-confirm/` |
+| 5.5 | `/prepare` | Generate build briefs: classify work, select toolkit, identify patterns | `specs/`, contracts, codebase | `pipeline/5.5-prepare/` |
+| 6 | `/build [spec\|folder\|--wave\|--all]` | Implement specs (single or batch) with boundary enforcement | Spec + build brief + contracts | Code, `pipeline/6-build/` |
+| 7 | `/confirm [spec]` | 6-level semantic verification of completed spec | Spec + code + VISION.md | `pipeline/7-confirm/` |
 
 **Key flows:**
 - `/dispatch` removes the operator as bottleneck — it auto-triages research into parallel threads
@@ -358,6 +374,7 @@ See `docs/PIPELINE_GUIDE.md` for the complete reference with examples, shortcuts
 | @pnpm/merge-driver | Auto-resolves `pnpm-lock.yaml` conflicts during parallel merges | Installed globally, configured in `.git/info/attributes` |
 | Git worktrees | Filesystem isolation for parallel `/build` agents | `.wt/{spec-id}` directories, gitignored |
 | `core.longpaths` | Windows long path support for deep `node_modules` | Enabled globally via `git config --global core.longpaths true` |
+| Conductor | Reactive pipeline orchestrator — auto-triggers stages, spawns parallel agents, archives cycles | `scripts/conductor.ts`, run via `pnpm conductor` |
 
 ## What NOT To Build (Deferred)
 

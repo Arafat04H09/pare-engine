@@ -14,13 +14,18 @@ You are searching for external tools (MCP servers, npm packages, APIs) that can 
 
 ## Inputs
 
-Read the most recent synthesis output:
-- Most recent file in `pipeline/3-synthesis/` — strategy with capability needs
+Determine capability needs from available pipeline artifacts (check in this order):
+
+1. **If $ARGUMENTS is a file path** (e.g., `pipeline/1.5-dispatch/dispatch-*.md`): Read that file — extract items routed to `/search-tools` from the Routing Decisions section.
+2. **If $ARGUMENTS is a capability name** (not a file path): Search for that specific capability.
+3. **If `pipeline/3-synthesis/` has files:** Read the most recent strategy for capability needs.
+4. **If `pipeline/1-gap-analysis/` has files:** Read the most recent gap analysis — extract items that are tool/API evaluations.
+
+This ordering lets search-tools run in parallel with research (fed by dispatch) OR after synthesis (the original flow). Both paths work.
 
 Also read for context:
+- `CLAUDE.md` — Settled tool decisions (do NOT search for alternatives to these)
 - `references/known-mcps.md` — Previously evaluated tools
-
-If a specific capability was requested: $ARGUMENTS
 
 ## Process
 

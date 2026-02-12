@@ -19,9 +19,9 @@ You are conducting research to test hypotheses and reduce uncertainty for the Pa
 
 Determine what to investigate:
 
-**If a dispatch thread brief exists:** Read the specific thread brief from `pipeline/1.5-dispatch/`. Execute that thread — its questions, search strategy, anti-scope, and output location are pre-defined.
+**If $ARGUMENTS is a file path** (e.g., `pipeline/1.5-dispatch/thread-1-geo-2026-02-11.md`): Read that file directly. It is a self-contained dispatch thread brief with pre-framed hypotheses, questions, search strategy, anti-scope, and output location. Execute that thread only — stay within its scope.
 
-**If a specific topic was provided ($ARGUMENTS):** That is the primary investigation topic. Frame it as a hypothesis before researching.
+**If $ARGUMENTS is a topic** (not a file path): That is the primary investigation topic. Frame it as a hypothesis before researching.
 
 **If neither:** Read the most recent gap analysis from `pipeline/1-gap-analysis/` — focus on "Research Questions" and "Hypotheses to Test" sections. Pick the highest-priority questions.
 

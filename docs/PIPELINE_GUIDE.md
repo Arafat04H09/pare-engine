@@ -89,8 +89,8 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 |-------|-------|--------------|
 | 5 | `/decompose` | How do we divide the work into parallel, non-overlapping units? |
 | 5.5 | `/prepare` | What's the fastest path to implementing each unit? |
-| 7 | `/build` | Is it implemented? |
-| 8 | `/confirm` | Is it correct? |
+| 6 | `/build` | Is it implemented? |
+| 7 | `/confirm` | Is it correct? |
 
 ---
 
@@ -254,14 +254,14 @@ The pipeline is designed for **maximum parallelism**, not incremental iteration.
 - Evaluates: fit, maturity, cost, lock-in risk
 - Verdict: USE (adopt) / BUILD (custom) / DEFER (later)
 
-**Input:** `pipeline/3-synthesis/` or `pipeline/1-gap-analysis/`
+**Input:** `pipeline/1.5-dispatch/` (runs in parallel with research at Stage 2)
 **Output:** `pipeline/4-search-tools/tools-YYYY-MM-DD.md`
 **Duration:** 45-90 minutes
 
-**Can run in parallel with:** `/research`
+**Can run in parallel with:** `/research` (both auto-spawned by the Conductor after dispatch)
 
 **When to run:**
-- When the gap analysis or strategy identifies capabilities that might exist as tools
+- When the dispatch manifest identifies capabilities that might exist as tools
 - When evaluating whether to adopt a new MCP server
 - Periodically to check if the MCP ecosystem has new offerings
 
@@ -335,7 +335,7 @@ The pipeline is designed for **maximum parallelism**, not incremental iteration.
 
 ---
 
-### Stage 7: Build (`/build`)
+### Stage 6: Build (`/build`)
 
 **Question answered:** "Is it implemented?"
 
@@ -372,7 +372,7 @@ The pipeline is designed for **maximum parallelism**, not incremental iteration.
 
 ---
 
-### Stage 8: Confirm (`/confirm`)
+### Stage 7: Confirm (`/confirm`)
 
 **Question answered:** "Is it correct?"
 
@@ -506,6 +506,10 @@ pipeline/
 │   └── build-log-YYYY-MM-DD.md
 ├── 7-confirm/               # Current cycle — verification reports
 │   └── confirm-YYYY-MM-DD.md
+├── logs/                    # Conductor runtime state
+│   ├── conductor-state.json # JSON state (stage status, timing)
+│   ├── conductor.log        # Append-only backup log
+│   └── conductor.lock       # PID lock (prevents concurrent instances)
 └── archive/                 # Previous cycles (max 2 kept)
     └── 2026-02-10/
 ```
@@ -514,10 +518,10 @@ pipeline/
 
 Pipeline artifacts are **ephemeral working files**, not permanent records. To keep the workspace clean:
 
-- `/gap-analysis` automatically **archives** the previous cycle's artifacts at the start of every new cycle
+- `pnpm conductor start` automatically **archives** the previous cycle's artifacts before starting a new one
 - Archives go to `pipeline/archive/YYYY-MM-DD/`
-- Only the **2 most recent** archives are kept — older ones are deleted
-- `/gap-analysis` reads feedback from the last cycle's confirm reports **before** archiving them
+- Only the **2 most recent** archives are kept — older ones are pruned
+- The conductor reads state from existing artifacts, so archiving prevents stale data from contaminating new cycles
 
 Durable findings go to `knowledge/` (persistent, not archived). Specs go to `specs/` (persistent, git-tracked).
 
@@ -558,6 +562,48 @@ When updating, skills add: `<!-- Updated by [skill] — YYYY-MM-DD -->`
 
 ---
 
+## Conductor (Pipeline Orchestrator)
+
+The Conductor (`scripts/conductor.ts`) automates stage transitions. Instead of manually invoking each skill, the conductor scans `pipeline/` for completed outputs, spawns agents for ready stages, and advances through the pipeline autonomously.
+
+### Model Routing
+
+| Stage | Model | Rationale |
+|-------|-------|-----------|
+| gap-analysis | Claude Opus | Orientation requires deep reasoning |
+| dispatch | Claude Opus | Triage requires judgment about research scope |
+| research | Gemini | Information gathering, large context window |
+| search-tools | Gemini | Tool evaluation, web search heavy |
+| synthesize | Claude Opus | Domain model update requires synthesis |
+| decompose | Claude Opus | Spec design requires architectural thinking |
+| prepare | Gemini | Pattern matching and brief generation |
+| build | Gemini | Code implementation, large context |
+| confirm | Claude Sonnet | Verification — balanced capability/cost |
+
+### Safety Features
+
+- **Cycle archiving:** `conductor start` moves previous cycle's artifacts to `pipeline/archive/YYYY-MM-DD/` before starting fresh
+- **Output validation:** Every stage's output files are checked for non-empty content after agent completion
+- **Append-only log:** `pipeline/logs/conductor.log` provides a durable audit trail independent of JSON state
+- **PID lock file:** Prevents concurrent conductor instances; auto-cleans stale locks from dead processes
+- **Fan-out completion gate:** Synthesize is blocked until ALL research threads have completed (count-based validation against dispatch thread briefs)
+
+### Commands
+
+```bash
+pnpm conductor                      # Auto-detect state, run forward
+pnpm conductor start                # Archive previous cycle, run full pipeline
+pnpm conductor watch                # Reactive: auto-run stages when files appear
+pnpm conductor status               # Show pipeline state
+pnpm conductor --from=synthesize    # Resume from specific stage
+pnpm conductor --understanding      # Understanding loop only (gap→synthesize)
+pnpm conductor --build              # Build loop only (decompose→confirm)
+pnpm conductor --dry-run            # Preview without executing
+pnpm conductor --gate-all           # Prompt before each stage
+```
+
+---
+
 ## Parallel Execution
 
 ### Within a Cycle
@@ -568,23 +614,36 @@ Stage 2:    /research x N  ←→  /search-tools           (PARALLEL — dispatc
 Stage 3:    /synthesize                                (sequential — reconciliation)
 Stage 5:    /decompose                                 (sequential)
 Stage 5.5:  /prepare --wave 1                          (sequential per wave)
-Stage 7:    /build --wave 1                            (PARALLEL via worktrees)
-Stage 8:    /confirm                                   (after each wave completes)
+Stage 6:    /build --wave 1                            (PARALLEL via worktrees)
+Stage 7:    /confirm                                   (after each wave completes)
 ```
 
 ### How Parallel Research Works (Dispatch)
 
-When `/dispatch` creates multiple thread briefs, the operator launches them as parallel agents:
+The **Conductor** (`pnpm conductor`) automatically handles research fan-out:
+
+1. Globs `pipeline/1.5-dispatch/thread-*-{date}.md` to discover thread briefs
+2. Spawns N+1 agents in parallel: one per thread brief + one search-tools agent
+3. Monitors all child processes, reports completion as they finish
+4. Validates all output files are non-empty
+5. Only advances to synthesize when ALL threads complete (count-based validation)
 
 ```
-# Dispatch creates 3 threads + 1 search-tools run:
-/research thread-1-geo           # Agent 1 (~20 min)
-/research thread-2-technical     # Agent 2 (~25 min)
-/research thread-3-competitive   # Agent 3 (~15 min)
-/search-tools                    # Agent 4 (parallel)
+  ▸ research — spawning 4 agents [gemini]
+    thread-1-geo                   ⟳ running
+    thread-2-technical             ⟳ running
+    thread-3-competitive           ⟳ running
+    search-tools                   ⟳ running
+
+    thread-3-competitive           ✓ 2m 12s
+    thread-2-technical             ✓ 3m 05s
+    search-tools                   ✓ 3m 44s
+    thread-1-geo                   ✓ 5m 31s
 ```
 
 Each thread has anti-scope that prevents overlap. Threads write to separate output files. `/synthesize` reads all thread outputs and reconciles them.
+
+**Manual override:** You can still launch research agents manually via `/research thread-path`. The conductor detects existing outputs and skips completed threads on resume.
 
 ### How Parallel Builds Work (Git Worktrees)
 
@@ -732,6 +791,15 @@ Each pipeline skill has templates for its output format:
 ## Best Practices
 
 ### Starting a New Cycle
+
+**Automated (recommended):**
+```bash
+pnpm conductor start    # Archives previous cycle, runs full pipeline autonomously
+```
+
+The conductor archives stale artifacts from the previous cycle, then runs gap-analysis → dispatch → research (fan-out) → synthesize → decompose → prepare → build → confirm in sequence, spawning agents and validating outputs at each step.
+
+**Manual:**
 1. Run `/gap-analysis` — orient in the domain, assess what's true
 2. Run `/dispatch` to triage research into parallel threads
 3. Launch parallel `/research` threads + `/search-tools`
