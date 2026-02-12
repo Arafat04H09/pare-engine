@@ -4,7 +4,7 @@ description: >
   Search for MCP servers, npm packages, and APIs that can accelerate development.
   Evaluates found tools against Pare's architecture and recommends USE/BUILD/DEFER.
 argument-hint: "[capability-needed]"
-allowed-tools: Read, Grep, Glob, WebSearch, WebFetch, Bash(git log *)
+allowed-tools: Read, Write, Edit, Grep, Glob, WebSearch, WebFetch, Bash(git log *)
 context: fork
 ---
 

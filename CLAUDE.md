@@ -9,13 +9,32 @@ Pare is a three-layer system (Tools, Intelligence, Workspace) that helps a solo 
 
 **Beachhead market:** B2B SaaS ($8M-$40M ARR), then PE-backed multi-location healthcare. See `VISION.md` for full market thesis.
 
+## Thinking Partner
+
+Claude is a thinking partner, not an executor. The operator's thinking is the scarcest resource — code is nearly free at this velocity. Optimize for decision quality, not output speed.
+
+**On non-trivial requests, apply automatically:**
+1. **Latent intent** — what's the real request beneath the surface?
+2. **Extrapolate** — 2nd/3rd order implications
+3. **Steelman** — strongest version of the idea AND strongest counter
+4. **Null space** — what's not being considered?
+5. **Confidence check** — do I know enough to act, or should I research first?
+
+**Mode detection (auto-classify every request):**
+- **Think** — design, architecture, strategy, product direction, open questions, operator reasoning out loud
+- **Execute** — clear specs, bug fixes, tactical coding, pipeline skill runs with defined scope
+- **Challenge** — operator's suggestion assumes unverified facts, mature solutions may exist, obvious alternatives aren't mentioned, operator's idea might be suboptimal
+
+Do not blindly execute architectural decisions. If the operator says "build X" and you're uncertain X is the right approach — say so, research alternatives, surface what exists. The operator wants to be challenged when it matters, not obeyed. See `.claude/rules/thinking.md` for the complete framework.
+
 ## Repo State
 
-The initial 28-session parallel build is complete and merged to `main`. Development now follows the pipeline-driven model (`/gap-analysis` → `/build` → `/confirm`). Read these before making changes:
+The initial 28-session parallel build is complete and merged to `main`. Development follows a two-loop pipeline: Understanding Loop (`/gap-analysis` → `/dispatch` → `/research` → `/synthesize`) then Build Loop (`/decompose` → `/build` → `/confirm`). Read these before making changes:
 
 - `VISION.md` — Living vision document, core thesis, market positioning
 - `PRODUCT_PLAN.md` — Complete feature inventory with status (SHIPPED/WIRED/PARTIAL/PLANNED)
 - `.claude/rules/coordination.md` — Auto-loaded rules for every session
+- `.claude/rules/thinking.md` — Thinking partner protocol and epistemic calibration
 - `docs/PIPELINE_GUIDE.md` — Development pipeline reference
 
 ### What Exists Now
@@ -27,6 +46,7 @@ apps/audit-runner/     → Inngest worker for the audit pipeline
 apps/web/              → Next.js 15: public website + audit form + admin panel
 docs/                  → Architecture, scoring, pipeline, business docs
 improvements/          → Strategic analysis (latent intent, steelman, risks)
+knowledge/             → Durable domain knowledge (persists across pipeline cycles)
 pipeline/              → Development pipeline artifacts (per-cycle, ephemeral)
 ```
 
@@ -213,6 +233,7 @@ Each step is an Inngest durable step — independently retriable. If step 3 fail
 - `PRODUCT_PLAN.md` — Complete feature inventory with SHIPPED/WIRED/PARTIAL/PLANNED status
 - `docs/MASTER_BUILD_PLAN.md` — Architecture decisions, costs, conflict resolutions
 - `improvements/` — Strategic analysis: latent intent, steelman, risks, recommendations
+- `knowledge/` — Durable domain knowledge (GEO, technical, scoring, competitors) — persists across cycles
 - `pipeline/` — Development pipeline artifacts (ephemeral, per-cycle)
 
 ### Technical
@@ -244,19 +265,19 @@ pnpm --filter @pare-engine/core test    # Run core tests
 
 ## Development Pipeline
 
-Eight skills drive the development cycle (available in both `.claude/skills/` and `.agent/skills/`):
+The pipeline has two loops — understand before building:
 
 ```
-/gap-analysis → /research ──┐
-                             ├→ /synthesize → /decompose → /prepare → /build → /confirm
-              /search-tools ─┘                                           ↑         │
-                                                                         └─────────┘
-                                                                        (feedback loop)
+UNDERSTANDING LOOP (orient before building):
+/gap-analysis → /dispatch → /research (N parallel) ──┐
+                           → /search-tools (parallel) ┤→ /synthesize → knowledge/
+                                                      └→ (re-orient if low confidence)
+
+BUILD LOOP (execute with confidence):
+/synthesize → /decompose → /prepare → /build → /confirm → feedback to next /gap-analysis
 ```
 
-**The pipeline is a DAG, not a chain.** `/research` and `/search-tools` can run in parallel (both feed into `/synthesize`). Multiple specs can `/build` in parallel within a wave. `/confirm` findings feed back into the next `/gap-analysis` cycle.
-
-Pipeline artifacts live in `pipeline/` (numbered subdirectories). Each skill auto-reads the previous step's output. Pass arguments to override. Entry at any point is supported — e.g., `/build specs/my-spec.md` works without running earlier steps.
+The Understanding Loop produces domain knowledge and a build strategy. The Build Loop executes it. Durable knowledge accumulates in `knowledge/` across cycles. Pipeline artifacts in `pipeline/` are ephemeral (archived each cycle).
 
 See `docs/PIPELINE_GUIDE.md` for the complete reference with examples, shortcuts, and decision trees.
 
@@ -264,20 +285,24 @@ See `docs/PIPELINE_GUIDE.md` for the complete reference with examples, shortcuts
 
 | # | Skill | What It Does | Reads From | Writes To |
 |---|-------|-------------|------------|-----------|
-| 1 | `/gap-analysis` | Scan repo vs VISION.md/PRODUCT_PLAN.md, identify gaps by revenue impact | Codebase, VISION.md, PRODUCT_PLAN.md | `pipeline/1-gap-analysis/` |
-| 2 | `/research` | Deep web research on questions from gap analysis | `pipeline/1-gap-analysis/` | `pipeline/2-research/` |
-| 3 | `/synthesize` | Merge gaps + research into phased build strategy (40hr budget cap) | `pipeline/1-*`, `pipeline/2-*`, `pipeline/4-*` | `pipeline/3-synthesis/` |
-| 4 | `/search-tools` | Find MCPs/npm packages/APIs for needed capabilities | `pipeline/3-synthesis/` | `pipeline/4-search-tools/` |
+| 1 | `/gap-analysis` | Orient in domain, assess epistemic state, classify complexity, then scan code | knowledge/, VISION.md, PRODUCT_PLAN.md, codebase | `pipeline/1-gap-analysis/`, knowledge/ |
+| 1.5 | `/dispatch` | Triage research questions into parallel threads with anti-scope | `pipeline/1-gap-analysis/`, knowledge/ | `pipeline/1.5-dispatch/` |
+| 2 | `/research` | Hypothesis-driven investigation, disconfirmation priority, durable knowledge output | `pipeline/1.5-dispatch/` or `pipeline/1-gap-analysis/`, knowledge/ | `pipeline/2-research/`, knowledge/ |
+| 3 | `/synthesize` | Update domain model (what changed?), then create phased build strategy | `pipeline/1-*`, `pipeline/2-*`, `pipeline/4-*`, knowledge/ | `pipeline/3-synthesis/`, knowledge/ |
+| 4 | `/search-tools` | Find MCPs/npm packages/APIs for needed capabilities | `pipeline/3-synthesis/` or `pipeline/1-gap-analysis/` | `pipeline/4-search-tools/` |
 | 5 | `/decompose` | Break strategy into atomic specs with strict file ownership | `pipeline/3-*`, `pipeline/4-*` | `specs/`, `pipeline/5-decompose/` |
 | 6 | `/prepare` | Generate build briefs: classify work, select toolkit, identify patterns | `specs/`, contracts, codebase | `pipeline/5.5-prepare/` |
 | 7 | `/build [spec\|folder\|--wave\|--all]` | Implement specs (single or batch) with boundary enforcement | Spec + build brief + contracts | Code, `pipeline/6-build/` |
 | 8 | `/confirm [spec]` | 6-level semantic verification of completed spec | Spec + code + VISION.md | `pipeline/7-confirm/` |
 
 **Key flows:**
-- Steps 2 and 4 can run in parallel (both inform step 3)
-- Step 6 (`/prepare`) is optional but recommended — it makes `/build` significantly faster
-- Step 7 (`/build`) supports batch modes: `--wave N`, `--all`, folder path, or `--next N` — executes specs in dependency order, stops on failure
-- Step 8 (`/confirm`) findings feed into the next cycle's `/gap-analysis`
+- `/dispatch` removes the operator as bottleneck — it auto-triages research into parallel threads
+- `/research` and `/search-tools` run in parallel (both feed into `/synthesize`)
+- `/synthesize` updates the domain model BEFORE creating the build plan
+- `/prepare` is optional but recommended — it makes `/build` significantly faster
+- `/build` supports batch modes: `--wave N`, `--all`, folder path, or `--next N`
+- `/confirm` findings feed into the next cycle's `/gap-analysis`
+- All Understanding Loop skills write durable findings to `knowledge/`
 - All pipeline skills may update VISION.md and PRODUCT_PLAN.md when evidence warrants it
 
 ### Utility Skills

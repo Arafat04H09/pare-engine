@@ -4,7 +4,7 @@ description: >
   Generate a changelog from git history. Groups commits by category,
   highlights breaking changes, and produces a release-ready summary.
 argument-hint: "[since-ref (tag, commit, or date)]"
-allowed-tools: Read, Grep, Glob, Bash(git log *), Bash(git diff *), Bash(git tag *)
+allowed-tools: Read, Write, Grep, Glob, Bash(git log *), Bash(git diff *), Bash(git tag *)
 context: fork
 ---
 

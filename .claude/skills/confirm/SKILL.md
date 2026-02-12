@@ -4,9 +4,8 @@ description: >
   Semantic verification of a completed build spec. Runs 6-level verification:
   build, spec compliance, boundary, convention, vision alignment, regression.
 argument-hint: "specs/B-hardening/B2.1-scoring-fix.md"
-allowed-tools: Read, Grep, Glob, Bash
+allowed-tools: Read, Write, Grep, Glob, Bash
 context: fork
-agent: Explore
 ---
 
 # Confirm

@@ -4,63 +4,112 @@
 
 ## Overview
 
-The Pare Engine development pipeline is an 8-stage iterative cycle that takes you from "what should we build?" to "is it built correctly?" Each stage is a skill (`/command`) that reads the previous stage's output and produces artifacts for the next.
+The Pare Engine development pipeline is a two-loop system that separates understanding from building. Each loop has distinct skills, outputs, and failure modes.
 
 The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify** — applied to its own development. The pipeline IS the product, used on itself.
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    THE DEVELOPMENT CYCLE                        │
-│                                                                 │
-│  ┌──────────────┐                                               │
-│  │ /gap-analysis │ ─── "What's missing?"                        │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌────────────┐    ┌───────────────┐                            │
-│  │ /research   │    │ /search-tools  │  ◄── Run in parallel     │
-│  └──────┬─────┘    └──────┬────────┘                            │
-│         │                 │                                     │
-│         └────────┬────────┘                                     │
-│                  ▼                                              │
-│         ┌──────────────┐                                        │
-│         │ /synthesize   │ ─── "What's the plan?"                │
-│         └──────┬───────┘                                        │
-│                ▼                                                │
-│         ┌──────────────┐                                        │
-│         │ /decompose    │ ─── "What are the work units?"        │
-│         └──────┬───────┘                                        │
-│                ▼                                                │
-│         ┌──────────────┐                                        │
-│         │ /prepare      │ ─── "How should we build each one?"   │
-│         └──────┬───────┘                                        │
-│                ▼                                                │
-│         ┌──────────────┐                                        │
-│         │ /build        │ ─── "Build it." (per spec, parallel)  │
-│         └──────┬───────┘                                        │
-│                ▼                                                │
-│         ┌──────────────┐                                        │
-│         │ /confirm      │ ─── "Is it correct?"                  │
-│         └──────┬───────┘                                        │
-│                │                                                │
-│                └──────────────────── feedback ──► next cycle    │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                  UNDERSTANDING LOOP                                  │
+│                  "Orient before building"                            │
+│                                                                     │
+│  ┌──────────────┐                                                   │
+│  │ /gap-analysis │ ─── "What's true? What do we know/not know?"     │
+│  └──────┬───────┘                                                   │
+│         │                                                           │
+│         ▼                                                           │
+│  ┌──────────────┐                                                   │
+│  │ /dispatch     │ ─── "What should we investigate in parallel?"     │
+│  └──────┬───────┘                                                   │
+│         │                                                           │
+│         ▼                                                           │
+│  ┌────────────┐    ┌───────────────┐                                │
+│  │ /research   │    │ /search-tools  │  ◄── Run in parallel         │
+│  │ (N threads) │    │               │                               │
+│  └──────┬─────┘    └──────┬────────┘                                │
+│         │                 │                                         │
+│         └────────┬────────┘                                         │
+│                  ▼                                                   │
+│         ┌──────────────┐                                            │
+│         │ /synthesize   │ ─── "What changed? What's the plan?"      │
+│         └──────┬───────┘                                            │
+│                │                                                    │
+│                ▼                                                    │
+│         ┌────────────┐                                              │
+│         │ knowledge/  │ ─── Durable findings persist across cycles  │
+│         └────────────┘                                              │
+│                                                                     │
+├─────────────────────────────────────────────────────────────────────┤
+│                  BUILD LOOP                                          │
+│                  "Execute with confidence"                           │
+│                                                                     │
+│         ┌──────────────┐                                            │
+│         │ /decompose    │ ─── "What are the work units?"            │
+│         └──────┬───────┘                                            │
+│                ▼                                                    │
+│         ┌──────────────┐                                            │
+│         │ /prepare      │ ─── "How should we build each one?"       │
+│         └──────┬───────┘                                            │
+│                ▼                                                    │
+│         ┌──────────────┐                                            │
+│         │ /build        │ ─── "Build it." (per spec, parallel)      │
+│         └──────┬───────┘                                            │
+│                ▼                                                    │
+│         ┌──────────────┐                                            │
+│         │ /confirm      │ ─── "Is it correct?"                      │
+│         └──────┬───────┘                                            │
+│                │                                                    │
+│                └──────────────────── feedback ──► next cycle        │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-## The 8 Stages
+## The Two Loops
+
+### Understanding Loop: Orient Before Building
+
+**Purpose:** Reduce uncertainty, update the domain model, accumulate durable knowledge.
+
+**Failure mode:** Skipping to the build. If you don't understand the domain well enough, you'll build the wrong thing efficiently.
+
+| Stage | Skill | Core Question |
+|-------|-------|--------------|
+| 1 | `/gap-analysis` | What do we know, believe, not know, and might be wrong about? |
+| 1.5 | `/dispatch` | How should we split investigation across parallel threads? |
+| 2 | `/research` | Does our hypothesis survive disconfirmation? |
+| 2 | `/search-tools` | Can we buy this instead of building it? |
+| 3 | `/synthesize` | What changed in our understanding? What should we build? |
+
+### Build Loop: Execute With Confidence
+
+**Purpose:** Turn a well-understood strategy into working code.
+
+**Failure mode:** Implementing without a strategy. If you skip the Understanding Loop, you're optimizing for speed at the expense of direction.
+
+| Stage | Skill | Core Question |
+|-------|-------|--------------|
+| 5 | `/decompose` | How do we divide the work into parallel, non-overlapping units? |
+| 5.5 | `/prepare` | What's the fastest path to implementing each unit? |
+| 7 | `/build` | Is it implemented? |
+| 8 | `/confirm` | Is it correct? |
+
+---
+
+## The 10 Stages
 
 ### Stage 1: Gap Analysis (`/gap-analysis`)
 
-**Question answered:** "Where are we vs where we want to be?"
+**Question answered:** "What's true about the domain, and where are the gaps?"
 
 **What it does:**
-- Scans the codebase against VISION.md and PRODUCT_PLAN.md
-- Identifies broken features, missing capabilities, stale code
-- Reads feedback from the previous cycle's `/confirm` reports
-- Prioritizes gaps by revenue impact (what unblocks the next dollar)
+- Reads `knowledge/` first — starts from what we durably know
+- Assesses epistemic state: what we know / believe / don't know / might be wrong about
+- Classifies each domain area using Cynefin (Clear/Complicated/Complex) to determine routing
+- THEN scans the codebase against VISION.md and PRODUCT_PLAN.md
+- Generates testable hypotheses with disconfirmation criteria
+- Frames specific, decision-relevant research questions
 
-**Input:** VISION.md, PRODUCT_PLAN.md, codebase, previous confirm reports
-**Output:** `pipeline/1-gap-analysis/gap-YYYY-MM-DD.md`
+**Input:** knowledge/, VISION.md, PRODUCT_PLAN.md, codebase, previous confirm reports
+**Output:** `pipeline/1-gap-analysis/gap-YYYY-MM-DD.md`, knowledge/ updates
 **Duration:** 30-60 minutes
 
 **When to run:**
@@ -77,53 +126,85 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 
 ---
 
-### Stage 2: Research (`/research`)
+### Stage 1.5: Dispatch (`/dispatch`)
 
-**Question answered:** "What do we need to know before building?"
+**Question answered:** "How should we split investigation across parallel agents?"
 
 **What it does:**
-- Takes research questions from the gap analysis
-- Conducts web searches for APIs, pricing, competitors, best practices
-- Cross-references multiple sources, flags single-source claims
-- Extracts actionable data: endpoints, schemas, pricing tables
+- Reads gap analysis hypotheses and research questions
+- Clusters questions into coherent parallel threads by domain
+- Sets anti-scope per thread (what each thread should NOT investigate)
+- Estimates duration and balances thread workloads
+- Produces self-contained thread briefs that agents can execute independently
 
-**Input:** `pipeline/1-gap-analysis/` research questions
-**Output:** `pipeline/2-research/research-YYYY-MM-DD.md`
-**Duration:** 60-120 minutes
+**Input:** `pipeline/1-gap-analysis/`, knowledge/
+**Output:** `pipeline/1.5-dispatch/dispatch-YYYY-MM-DD.md`
+**Duration:** 10-20 minutes
 
-**Can run in parallel with:** `/search-tools` (both feed into `/synthesize`)
+**Why it exists:** Without dispatch, the operator must manually decide what each parallel research agent investigates. Dispatch automates that triage so the operator can launch N agents without being the bottleneck.
 
 **When to run:**
-- When gap analysis identifies unknowns
-- When exploring a new technology or API
-- When competitive landscape may have changed
+- After gap analysis, before research
+- When gap analysis produced 3+ research questions across different domains
+- Skip if there are <3 research questions in a single domain (just run `/research` directly)
 
 **Example:**
 ```
-/research
-/research "Vercel AI SDK v6 gateway routing"     # Specific topic
-/research "competitor GEO tools 2026"             # Market research
+/dispatch
+/dispatch pipeline/1-gap-analysis/gap-2026-02-11.md   # Specific gap file
+```
+
+---
+
+### Stage 2: Research (`/research`)
+
+**Question answered:** "Does our hypothesis survive investigation?"
+
+**What it does:**
+- Reads dispatch thread brief (if available) or gap analysis research questions
+- Frames explicit hypotheses with disconfirmation criteria BEFORE searching
+- Uses information foraging: breadth-first scan, then depth on signal
+- Prioritizes disconfirmation over confirmation (ACH methodology)
+- Tracks confidence levels and saturation (stops when returns diminish)
+- Writes durable findings to `knowledge/`, not just pipeline artifacts
+
+**Input:** `pipeline/1.5-dispatch/` thread brief or `pipeline/1-gap-analysis/`, knowledge/
+**Output:** `pipeline/2-research/thread-N-[domain]-YYYY-MM-DD.md` or `research-YYYY-MM-DD.md`, knowledge/ updates
+**Duration:** 15-60 minutes per thread
+
+**Can run in parallel:** Multiple threads from dispatch, plus `/search-tools`
+
+**When to run:**
+- When gap analysis identifies hypotheses to test
+- When exploring a new technology, API, or market question
+- When existing knowledge is stale (>90 days)
+
+**Example:**
+```
+/research                                               # Auto-read gap analysis
+/research "Perplexity citation patterns for B2B SaaS"   # Specific topic
+/research thread-2-technical                            # Specific dispatch thread
 ```
 
 ---
 
 ### Stage 3: Synthesize (`/synthesize`)
 
-**Question answered:** "What's the optimal build plan?"
+**Question answered:** "What changed in our understanding? What should we build?"
 
 **What it does:**
-- Maps research findings to identified gaps
-- Assesses feasibility and estimates effort (hours, not days)
-- Phases work into build order (Phase 0-4)
-- Creates dependency graph (mermaid diagram)
-- Enforces 40-hour budget cap per cycle
+- Collects and reconciles all research thread outputs (handles contradictions)
+- Updates the domain model: what we confirmed, disconfirmed, newly learned, still don't know
+- THEN creates the build strategy (phases, dependencies, budget)
+- Classifies items by Cynefin: Clear → just build, Complicated → analyze then build, Complex → probe
+- Updates `knowledge/` with synthesis insights
 
-**Input:** `pipeline/1-gap-analysis/`, `pipeline/2-research/`, `pipeline/4-search-tools/` (if available)
-**Output:** `pipeline/3-synthesis/strategy-YYYY-MM-DD.md`
+**Input:** `pipeline/1-gap-analysis/`, all `pipeline/2-research/` threads, `pipeline/4-search-tools/`, knowledge/
+**Output:** `pipeline/3-synthesis/strategy-YYYY-MM-DD.md`, knowledge/ updates
 **Duration:** 60-90 minutes
 
 **When to run:**
-- After gap analysis and research are complete
+- After research and search-tools are complete
 - When you need to re-prioritize mid-cycle
 
 **Example:**
@@ -139,20 +220,20 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 **Question answered:** "Can we buy instead of build?"
 
 **What it does:**
-- Extracts capability needs from the synthesis strategy
+- Extracts capability needs from the gap analysis or synthesis strategy
 - Searches MCP registries (smithery.ai, mcp.so, glama.ai)
 - Searches npm for TypeScript packages with Zod compatibility
 - Evaluates: fit, maturity, cost, lock-in risk
 - Verdict: USE (adopt) / BUILD (custom) / DEFER (later)
 
-**Input:** `pipeline/3-synthesis/` (or can run from gap analysis directly)
+**Input:** `pipeline/3-synthesis/` or `pipeline/1-gap-analysis/`
 **Output:** `pipeline/4-search-tools/tools-YYYY-MM-DD.md`
 **Duration:** 45-90 minutes
 
 **Can run in parallel with:** `/research`
 
 **When to run:**
-- When the strategy identifies capabilities that might exist as tools
+- When the gap analysis or strategy identifies capabilities that might exist as tools
 - When evaluating whether to adopt a new MCP server
 - Periodically to check if the MCP ecosystem has new offerings
 
@@ -239,8 +320,8 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 - **Batch mode:** Resolves a build queue, executes specs in dependency order, stops on failure
 
 **Input:** Spec file (or folder, wave, queue selector), build brief, contracts, conventions
-**Output:** Code changes, `pipeline/6-build/build-log-YYYY-MM-DD.md`, `pipeline/6-build/batch-YYYY-MM-DD.md` (batch mode)
-**Duration:** 2-8 hours per spec
+**Output:** Code changes, `pipeline/6-build/build-log-YYYY-MM-DD.md`
+**Duration:** 10-20 minutes per spec (at observed velocity)
 
 **Supports batch execution** — build an entire category folder, wave, or all ready specs in one command. Specs execute sequentially in dependency order. Batch stops on first failure to prevent cascading issues.
 
@@ -252,11 +333,11 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 **Example:**
 ```
 /build specs/B-hardening/B2.1-my-spec.md                 # Single spec
-/build specs/B-hardening/                                # All ready specs in B-hardening folder
+/build specs/B-hardening/                                # All ready specs in folder
 /build --wave 1                                          # All ready specs in wave 1
 /build --next                                            # Next ready spec (default)
 /build --next 5                                          # Next 5 ready specs
-/build --all                                             # All ready specs in dependency order
+/build --all                                             # All ready specs in order
 /build                                                   # Same as --next
 ```
 
@@ -294,31 +375,37 @@ The pipeline mirrors Pare's own consulting thesis — **audit, implement, verify
 
 ## Pipeline Shortcuts
 
-Not every task needs the full 8 stages. Here are the common patterns:
+Not every task needs the full pipeline. Here are the common patterns:
 
 ### Full Cycle (New Development Sprint)
 ```
-/gap-analysis → /research + /search-tools → /synthesize → /decompose → /prepare → /build → /confirm
+/gap-analysis → /dispatch → /research + /search-tools → /synthesize → /decompose → /prepare → /build → /confirm
 ```
-Use when: Starting a new development cycle. Takes 1-2 days for planning, then build time varies.
+Use when: Starting a new development cycle. Understanding Loop takes 2-4 hours, then Build Loop varies.
+
+### Understanding Only (No Build Yet)
+```
+/gap-analysis → /dispatch → /research (parallel threads) → /synthesize
+```
+Use when: You need to understand the landscape before deciding what to build. Ends with an updated domain model and strategy.
 
 ### Quick Build (Spec Already Exists)
 ```
 /prepare specs/my-spec.md → /build specs/my-spec.md → /confirm specs/my-spec.md
 ```
-Use when: Specs already exist and you want to implement one. Takes 3-10 hours.
+Use when: Specs already exist and you want to implement one. Takes 30-60 minutes.
 
 ### Batch Build (Wave or Category)
 ```
 /prepare --wave 1 → /build --wave 1 → /confirm
 ```
-Use when: Specs are decomposed and you want to build an entire wave or category. Stops on first failure. Takes hours per wave.
+Use when: Specs are decomposed and you want to build an entire wave. Stops on first failure.
 
 ### Direct Build (Simple, Clear Spec)
 ```
 /build specs/my-spec.md → /confirm specs/my-spec.md
 ```
-Use when: The spec is simple and you don't need preparation. Takes 2-4 hours.
+Use when: The spec is simple and you don't need preparation. Takes 15-30 minutes.
 
 ### Hotfix (Emergency)
 ```
@@ -328,9 +415,9 @@ Use when: Single-file bug fix. Skips the entire pipeline. Takes 15-60 minutes.
 
 ### Research Only
 ```
-/gap-analysis → /research
+/research "Perplexity citation patterns"
 ```
-Use when: You need to understand the landscape before deciding what to build. Takes 2-4 hours.
+Use when: You need to investigate a specific topic standalone. Writes to `knowledge/`.
 
 ### Vision Refinement
 ```
@@ -340,17 +427,44 @@ Use when: Strategic direction has changed and you need to realign. Takes 1-2 hou
 
 ---
 
+## Durable Knowledge
+
+The `knowledge/` directory persists across pipeline cycles (unlike `pipeline/` which is archived):
+
+```
+knowledge/
+├── README.md          → Format rules, what goes here vs. pipeline
+├── domain/            → GEO discipline, AI engine behaviors, market dynamics
+├── technical/         → API capabilities, tool evaluations, integration patterns
+├── scoring/           → What actually affects AI visibility (evidence-based)
+└── competitors/       → Competitor capabilities, gaps, positioning
+```
+
+**How skills interact with knowledge/:**
+| Skill | Reads | Writes |
+|-------|-------|--------|
+| `/gap-analysis` | Reads all — builds epistemic state from durable knowledge | Updates verification dates, flags stale entries |
+| `/research` | Reads relevant subdirectory — avoids re-investigating known facts | Writes durable findings, updates contradictions |
+| `/synthesize` | Reads all — reconciles research against existing knowledge | Updates confidence levels, writes new domain models |
+| `/confirm` | Does not read | Flags knowledge that didn't hold up in practice |
+
+---
+
 ## Pipeline Artifacts
 
 Every skill produces artifacts in the `pipeline/` directory:
 
 ```
 pipeline/
-├── 1-gap-analysis/         # Current cycle — gap reports
+├── 1-gap-analysis/         # Current cycle — orientation + gap reports
 │   └── gap-YYYY-MM-DD.md
-├── 2-research/              # Current cycle — research briefs
+├── 1.5-dispatch/            # Current cycle — dispatch manifests
+│   └── dispatch-YYYY-MM-DD.md
+├── 2-research/              # Current cycle — research findings
+│   ├── thread-1-geo-YYYY-MM-DD.md
+│   ├── thread-2-technical-YYYY-MM-DD.md
 │   └── research-YYYY-MM-DD.md
-├── 3-synthesis/             # Current cycle — build strategies
+├── 3-synthesis/             # Current cycle — domain model + strategy
 │   └── strategy-YYYY-MM-DD.md
 ├── 4-search-tools/          # Current cycle — tool evaluations
 │   └── tools-YYYY-MM-DD.md
@@ -358,20 +472,13 @@ pipeline/
 │   └── manifest-YYYY-MM-DD.md
 ├── 5.5-prepare/             # Current cycle — build briefs
 │   ├── brief-B2.1-YYYY-MM-DD.md
-│   ├── brief-B2.2-YYYY-MM-DD.md
 │   └── wave-1-YYYY-MM-DD.md
 ├── 6-build/                 # Current cycle — build logs
 │   └── build-log-YYYY-MM-DD.md
 ├── 7-confirm/               # Current cycle — verification reports
 │   └── confirm-YYYY-MM-DD.md
 └── archive/                 # Previous cycles (max 2 kept)
-    ├── 2026-02-10/          # Last completed cycle
-    │   ├── 1-gap-analysis/
-    │   ├── 2-research/
-    │   ├── 3-synthesis/
-    │   └── ...
-    └── 2026-02-08/          # One before that
-        └── ...
+    └── 2026-02-10/
 ```
 
 ### Artifact Rotation
@@ -383,33 +490,26 @@ Pipeline artifacts are **ephemeral working files**, not permanent records. To ke
 - Only the **2 most recent** archives are kept — older ones are deleted
 - `/gap-analysis` reads feedback from the last cycle's confirm reports **before** archiving them
 
-This means at any point you have: the current cycle's working files + up to 2 archived cycles for reference. No stale clutter.
-
-Specs are written to `specs/` (persistent, git-tracked — these are NOT archived):
-
-```
-specs/
-├── index.md                  # Master index of all specs
-├── A-critical-fixes/         # Category A specs
-├── B-hardening/              # Category B specs
-├── C-features/               # Category C specs
-└── D-testing/                # Category D specs
-```
+Durable findings go to `knowledge/` (persistent, not archived). Specs go to `specs/` (persistent, git-tracked).
 
 ---
 
 ## Feedback Loops
 
-The pipeline isn't just linear — it has explicit feedback loops:
-
 ### Confirm → Gap Analysis (Primary Loop)
 Every `/confirm` report includes a "Feedback for next cycle" section. The next `/gap-analysis` reads this to understand what issues remain, what patterns caused failures, and what should be prioritized.
 
+### Research → Knowledge (Accumulation Loop)
+Every `/research` thread writes durable findings to `knowledge/`. The next `/gap-analysis` reads `knowledge/` first, so understanding compounds across cycles. This is the primary mechanism for avoiding re-investigation.
+
 ### Build → Vision (Learning Loop)
-When `/build` encounters a vision assumption that doesn't hold (API doesn't work as expected, feature is infeasible as designed), it logs the issue in the build log AND adds a note to VISION.md. This prevents the same wrong assumption from persisting.
+When `/build` encounters a vision assumption that doesn't hold, it logs the issue AND adds a note to VISION.md. This prevents wrong assumptions from persisting.
+
+### Synthesize → Domain Model (Understanding Loop)
+`/synthesize` updates `knowledge/` with what was confirmed, disconfirmed, and newly learned. This is how the pipeline's understanding of the GEO domain deepens over time.
 
 ### All Skills → VISION.md + PRODUCT_PLAN.md (Living Document Loop)
-Every pipeline skill can update VISION.md and PRODUCT_PLAN.md when evidence warrants it. This keeps strategic documents aligned with reality:
+Every pipeline skill can update VISION.md and PRODUCT_PLAN.md when evidence warrants it:
 
 | Skill | What It Can Update |
 |-------|-------------------|
@@ -420,13 +520,12 @@ Every pipeline skill can update VISION.md and PRODUCT_PLAN.md when evidence warr
 | `/decompose` | Phasing (if scope exceeds budget), architectural flags |
 | `/prepare` | Cognitive team routing, architectural principles |
 | `/build` | Any vision assumption that doesn't hold in practice |
-| `/confirm` | Recommends updates (doesn't edit directly — flags for next cycle) |
+| `/confirm` | Recommends updates (flags for next cycle) |
 
 When updating, skills add: `<!-- Updated by [skill] — YYYY-MM-DD -->`
 
-**What's stable** (don't change without user discussion): Core thesis (audit → implement → verify), three-layer architecture, unified principles.
-
-**What's fluid** (update with evidence): Market targets, pricing, feature priorities, tool inventory, competitive positioning, technical choices.
+**What's stable** (don't change without user discussion): Core thesis, three-layer architecture, unified principles.
+**What's fluid** (update with evidence): Market targets, pricing, feature priorities, tool inventory, competitive positioning.
 
 ---
 
@@ -434,14 +533,29 @@ When updating, skills add: `<!-- Updated by [skill] — YYYY-MM-DD -->`
 
 ### Within a Cycle
 ```
-Stage 1:  /gap-analysis                              (sequential)
-Stage 2:  /research  ←→  /search-tools               (PARALLEL)
-Stage 3:  /synthesize                                 (sequential — waits for both)
-Stage 4:  /decompose                                  (sequential)
-Stage 5:  /prepare --wave 1                           (sequential per wave)
-Stage 6:  /build --wave 2                             (PARALLEL via worktrees)
-Stage 7:  /confirm                                    (after each wave completes)
+Stage 1:    /gap-analysis                              (sequential — orientation)
+Stage 1.5:  /dispatch                                  (sequential — triage)
+Stage 2:    /research x N  ←→  /search-tools           (PARALLEL — dispatched threads)
+Stage 3:    /synthesize                                (sequential — reconciliation)
+Stage 5:    /decompose                                 (sequential)
+Stage 5.5:  /prepare --wave 1                          (sequential per wave)
+Stage 7:    /build --wave 1                            (PARALLEL via worktrees)
+Stage 8:    /confirm                                   (after each wave completes)
 ```
+
+### How Parallel Research Works (Dispatch)
+
+When `/dispatch` creates multiple thread briefs, the operator launches them as parallel agents:
+
+```
+# Dispatch creates 3 threads + 1 search-tools run:
+/research thread-1-geo           # Agent 1 (~20 min)
+/research thread-2-technical     # Agent 2 (~25 min)
+/research thread-3-competitive   # Agent 3 (~15 min)
+/search-tools                    # Agent 4 (parallel)
+```
+
+Each thread has anti-scope that prevents overlap. Threads write to separate output files. `/synthesize` reads all thread outputs and reconciles them.
 
 ### How Parallel Builds Work (Git Worktrees)
 
@@ -463,16 +577,6 @@ Each sub-agent gets its own full filesystem checkout. They can `pnpm build`, `pn
 - If a sub-agent fails, its branch is not merged. Other agents continue.
 - If the post-merge integration check fails, the orchestrator bisects to find which merge caused it.
 - If worktree creation fails (disk space, Windows path limits), falls back to sequential mode.
-
-### Across Waves
-```
-Wave 1:  /build --wave 1                              (sequential — dependencies)
-Wave 2:  /build --wave 2                              (PARALLEL via worktrees)
-Wave 3:  /build --wave 3                              (PARALLEL via worktrees)
-Wave 4:  /build --wave 4                              (after all builds complete)
-```
-
-Waves execute sequentially (Wave 2 waits for Wave 1). Specs within each wave execute in parallel via worktrees. Use `/build --all` to automatically run all waves in order with parallelism within each wave.
 
 ---
 
@@ -503,7 +607,10 @@ These operate outside the main pipeline and can be used at any time:
 ├─ "...know what to build next"
 │   └─ /gap-analysis
 │
-├─ "...understand a technology/competitor/API"
+├─ "...launch parallel research without being the bottleneck"
+│   └─ /dispatch (after gap-analysis)
+│
+├─ "...investigate a hypothesis or technology"
 │   └─ /research [topic]
 │
 ├─ "...find tools to accelerate development"
@@ -551,34 +658,54 @@ These operate outside the main pipeline and can be used at any time:
 
 ---
 
+## Epistemic Framework
+
+The pipeline embeds an epistemic framework for decision quality:
+
+### Cynefin Classification (from /gap-analysis)
+- **Clear** — Known solution. Skip research, go straight to build. (e.g., "add a button")
+- **Complicated** — Analyzable with expert knowledge. Research specific questions, then build. (e.g., "integrate Foursquare API")
+- **Complex** — No known solution. Hypothesis-driven research, build probes, iterate. (e.g., "what scoring weights maximize client value?")
+
+### Confidence Levels (used across all skills)
+- **High** — Verified across multiple sources or direct testing. Act on it.
+- **Medium** — Single credible source or reasonable inference. Flag alternatives but proceed.
+- **Low** — Unverified or contradicted. Research before building on it.
+
+### Disconfirmation Priority (from /research)
+- Search for evidence AGAINST the hypothesis, not for it.
+- If you can't disprove it after genuine effort, confidence goes up.
+- The most valuable research output is "we were wrong about X because Y."
+
+---
+
 ## Templates
 
 Each pipeline skill has templates for its output format:
 
 | Skill | Template Location |
 |-------|------------------|
-| `/gap-analysis` | `.agent/skills/gap-analysis/templates/gap-report.md` |
-| `/research` | `.agent/skills/research/templates/research-brief.md` |
-| `/synthesize` | `.agent/skills/synthesize/templates/strategy.md` |
-| `/decompose` | `.agent/skills/decompose/templates/spec.md` |
-| `/prepare` | `.agent/skills/prepare/templates/build-brief.md`, `wave-summary.md` |
-| `/build` | `.agent/skills/build/templates/batch-summary.md` |
-| `/confirm` | `.agent/skills/confirm/templates/verification-report.md` |
-
-Templates are also available in `.claude/skills/` (mirrored).
+| `/gap-analysis` | `.claude/skills/gap-analysis/templates/gap-report.md` |
+| `/research` | `.claude/skills/research/templates/research-brief.md` |
+| `/synthesize` | `.claude/skills/synthesize/templates/strategy.md` |
+| `/decompose` | `.claude/skills/decompose/templates/spec.md` |
+| `/prepare` | `.claude/skills/prepare/templates/build-brief.md`, `wave-summary.md` |
+| `/build` | `.claude/skills/build/templates/batch-summary.md` |
+| `/confirm` | `.claude/skills/confirm/templates/verification-report.md` |
 
 ---
 
 ## Best Practices
 
 ### Starting a New Cycle
-1. Run `/gap-analysis` first — always start from reality
-2. Run `/research` and `/search-tools` in parallel if both are needed
-3. Don't skip `/synthesize` — it enforces the 40-hour budget cap
-4. Use `/prepare` before complex builds — 15 minutes of preparation saves hours of rework
+1. Run `/gap-analysis` — orient in the domain, assess what's true
+2. Run `/dispatch` to triage research into parallel threads
+3. Launch parallel `/research` threads + `/search-tools`
+4. Run `/synthesize` — update domain model, then create strategy
+5. Don't skip understanding — it prevents building the wrong thing
 
 ### During Build
-1. Use batch mode (`--wave N`, `--all`, or folder path) to build multiple specs in sequence
+1. Use batch mode (`--wave N`, `--all`, or folder path) to build multiple specs
 2. Batch stops on first failure — fix the issue before continuing
 3. Always run `/confirm` after each build or batch — catch issues early
 4. If a build fails, read the error carefully before retrying
@@ -587,14 +714,15 @@ Templates are also available in `.claude/skills/` (mirrored).
 ### Maintaining Quality
 1. Use `/review` before every commit
 2. Use `/security` before every deployment
-3. Keep VISION.md and PRODUCT_PLAN.md current — they're living documents
+3. Keep VISION.md, PRODUCT_PLAN.md, and `knowledge/` current
 4. Every confirm report should have a "Feedback for next cycle" section
 
 ### When Things Go Wrong
-1. Build broken? → `/hotfix` for single-file fixes, or go back to `/gap-analysis` for systemic issues
+1. Build broken? → `/hotfix` for single-file fixes, or `/gap-analysis` for systemic issues
 2. Spec seems wrong? → Don't improvise. Log the issue and flag it.
-3. Vision outdated? → `/vision` to workshop updates, then `/gap-analysis` to realign
-4. Unclear what to build? → Start with `/gap-analysis`, not `/build`
+3. Vision outdated? → `/vision` to workshop updates, then `/gap-analysis`
+4. Knowledge stale? → Run `/research` on the specific topic. Update `knowledge/`.
+5. Unclear what to build? → Start with `/gap-analysis`, not `/build`
 
 ---
 
@@ -602,20 +730,25 @@ Templates are also available in `.claude/skills/` (mirrored).
 
 | Term | Definition |
 |------|-----------|
-| **Cycle** | One full pass through the pipeline (gap → confirm) |
+| **Understanding Loop** | The first half of the pipeline: orient, dispatch, research, synthesize |
+| **Build Loop** | The second half: decompose, prepare, build, confirm |
+| **Cycle** | One full pass through both loops |
+| **Durable Knowledge** | Findings in `knowledge/` that persist across cycles |
+| **Epistemic State** | What we know / believe / don't know / might be wrong about |
+| **Cynefin** | Complexity classification: Clear, Complicated, Complex |
+| **Dispatch** | Triage step that routes research into parallel threads with anti-scope |
+| **Anti-scope** | What a research thread should NOT investigate (prevents overlap) |
+| **Disconfirmation** | Searching for evidence against a hypothesis (more valuable than confirmation) |
+| **Saturation** | The point where additional research stops reducing uncertainty |
 | **Wave** | A group of specs that can execute in parallel |
 | **Spec** | An atomic work unit with files owned, acceptance criteria, and verification |
 | **Build Brief** | A tactical implementation guide produced by `/prepare` |
 | **Contract** | A Zod schema in `packages/core/src/contracts/` — the source of truth for types |
 | **Feedback Loop** | How outputs from later stages inform earlier stages in the next cycle |
-| **DAG** | Directed Acyclic Graph — the pipeline's actual structure (not purely linear) |
+| **DAG** | Directed Acyclic Graph — the pipeline's actual structure |
 | **OWNED files** | Files a spec is allowed to create or modify (exclusive, no overlap) |
-| **READ-ONLY files** | Files a spec can import from but must not modify |
-| **Living Document** | VISION.md and PRODUCT_PLAN.md — updated by any pipeline skill with evidence |
-| **Worktree** | A separate git checkout in `.wt/` used for parallel builds. Each sub-agent gets its own worktree for full isolation. |
-| **PreToolUse Hook** | Claude Code hook that validates Edit/Write operations. Enforces file ownership from spec's OWNED list when `PARE_SPEC_FILE` is set. |
-| **Merge Driver** | `@pnpm/merge-driver` — auto-resolves `pnpm-lock.yaml` conflicts during parallel branch merges. |
+| **Worktree** | A separate git checkout in `.wt/` used for parallel builds |
 
 ---
 
-*This guide is the reference for the development pipeline. When in doubt, follow the pipeline. When you don't need the full pipeline, use the shortcuts. When you need to go faster, use `/prepare` to frontload the thinking.*
+*This guide is the reference for the development pipeline. When in doubt, follow the pipeline. When you don't need the full pipeline, use the shortcuts. Understand before you build.*
