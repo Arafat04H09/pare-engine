@@ -1,10 +1,12 @@
 # Pare Engine
 
-AI-native consulting operating system for Generative Engine Optimization (GEO).
+**B2B SaaS GEO auditing platform**: Audit how AI engines perceive businesses, score AI readiness across 5 pillars, and generate branded PDF reports.
 
-Audits how AI engines (ChatGPT, Perplexity, Gemini) perceive businesses, scores AI readiness 0-100 across 5 pillars, generates branded PDF reports, implements fixes, verifies improvements, and retains clients through ongoing monitoring. The audit-to-implement-to-verify loop is the core value proposition.
-
-**Beachhead market:** B2B SaaS ($8M-$40M ARR), then PE-backed multi-location healthcare.
+**What it does:**
+- Crawls business websites → queries AI engines (ChatGPT, Perplexity, Gemini) → analyzes content/schema/technical readiness → scores 0-100 across 5 pillars → delivers branded PDF report
+- Inngest durable pipeline: each step independently retriable, persists to PostgreSQL
+- Operator console: manage audits, track scores, schedule rescans
+- Beachhead: B2B SaaS ($8M-$40M ARR), then PE-backed multi-location healthcare
 
 ## Architecture
 
@@ -21,6 +23,15 @@ docs/                   Architecture, scoring, pipeline, business documentation
 There is no `apps/api` — API routes and webhooks live inside `apps/web/app/api/`.
 
 **Contract-first:** All shared types in `packages/core/src/contracts/`. Import contracts, never sibling implementations.
+
+## Key Technical Highlights
+
+- **Contract-first architecture:** All shared contracts in `packages/core/src/contracts/` — single source of truth for types across packages
+- **5-pillar scoring:** AI Visibility (30) + Content Quality (30) + Schema/Structured Data (15) + Technical Readiness (10) + Local/GBP (15) = composite 0-100 score + letter grade
+- **Durable pipeline:** Inngest with PostgreSQL backend — each step (crawl, query, analyze, score, report) independently retriable
+- **40+ typed tools:** Firecrawl, multi-provider LLM queries, schema extraction, GBP analysis
+- **1,900+ lines of tests:** Vitest (unit) + Playwright (E2E) across all packages
+- **Turborepo monorepo:** 26,700 LOC across `packages/core`, `apps/audit-runner`, `apps/web`, knowledge, pipeline, improvements
 
 ## Quick Start
 
@@ -123,11 +134,7 @@ See `docs/PIPELINE_GUIDE.md` for the complete reference.
 | `docs/AUDIT_PIPELINE.md` | Inngest pipeline step-by-step reference |
 | `docs/PIPELINE_GUIDE.md` | Development pipeline with examples and decision trees |
 
-## Build Stats
+## Quick Links
 
-- **26,700 LOC** across the monorepo
-- **201 tests** passing
-- **45+ typed tool functions** in `packages/core/src/tools/`
-- **7 contract files** defining all shared types (Zod schemas, source of truth)
-- **5 prompt verticals** seeded (dental, legal, HVAC, chiropractic, roofing)
-- Built in **28 parallel sessions** over 5.5 hours
+- **GitHub:** https://github.com/Arafat04H09/pare-engine
+- **Support/Questions:** Open an issue or discussion on the repo
